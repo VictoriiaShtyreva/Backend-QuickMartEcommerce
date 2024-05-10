@@ -9,7 +9,7 @@ namespace Ecommerce.Core.src.Entities
         public string Title { get; set; }
         public decimal Price { get; set; }
         public string Description { get; set; }
-        public Category Category { get; set; }
+        public Category? Category { get; set; }
         public Guid CategoryId { get; set; }
         public int Inventory { get; set; }
         public IEnumerable<ProductImage>? Images { get; set; }
@@ -18,7 +18,6 @@ namespace Ecommerce.Core.src.Entities
 
         public Product(string title, decimal price, string description, Guid categoryId, int inventory)
         {
-            Guard.Against.Null(Category, nameof(Category));
             Title = Guard.Against.NullOrWhiteSpace(title, nameof(title));
             Price = Guard.Against.NegativeOrZero(price, nameof(price));
             Description = Guard.Against.NullOrWhiteSpace(description, nameof(description));

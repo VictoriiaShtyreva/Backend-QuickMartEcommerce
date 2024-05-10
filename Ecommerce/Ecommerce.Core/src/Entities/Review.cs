@@ -8,13 +8,11 @@ namespace Ecommerce.Core.src.Entities
         public Guid ProductId { get; set; }
         public int Rating { get; set; }
         public string Content { get; set; }
-        public User User { get; set; }
-        public Product Product { get; set; }
+        public User? User { get; set; }
+        public Product? Product { get; set; }
 
         public Review(Guid userId, Guid productId, int rating, string content)
         {
-            Guard.Against.Null(User, nameof(User));
-            Guard.Against.Null(Product, nameof(Product));
             Id = Guid.NewGuid();
             UserId = Guard.Against.Default(userId, nameof(userId));
             ProductId = Guard.Against.Default(productId, nameof(productId));

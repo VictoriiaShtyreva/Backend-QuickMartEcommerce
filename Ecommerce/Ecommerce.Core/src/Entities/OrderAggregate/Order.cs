@@ -8,7 +8,6 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
         public Guid UserId { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Processing;
         public decimal TotalPrice { get; set; } = 0;
-
         private readonly HashSet<OrderItem> _orderItems;
         public IReadOnlyCollection<OrderItem> OrderItems => _orderItems;
         public User? User { get; set; }
