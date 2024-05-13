@@ -11,21 +11,32 @@ namespace Ecommerce.WebAPI.src.Repositories
     {
         private readonly AppDbContext _context;
         private readonly DbSet<Order> _orders;
-        private readonly DbSet<ProductSnapshot> _productSnapshots;
-        private readonly DbSet<OrderItem> _orderItems;
         private readonly ICartRepository _cartRepository;
         public OrderRepository(AppDbContext context, ICartRepository cartRepository)
         {
             _context = context;
             _orders = _context.Orders;
-            _orderItems = _context.OrderItems;
-            _productSnapshots = _context.ProductSnapshots;
             _cartRepository = cartRepository;
         }
 
         public async Task<Order> CreateAsync(Order entity)
         {
-            throw new NotImplementedException();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            // Add the new order
+            _orders.Add(entity);
+            await _context.SaveChangesAsync();
+            // Retrieve the cart items and convert them to order items
+            var cart = await _cartRepository.GetCartByUserIdAsync(entity.UserId);
+            foreach (var cartItem in cart.CartItems!)
+            {
+                entity.AddOrderItem(cartItem.Product!, cartItem.Quantity);
+            }
+            // Save changes to order items
+            await _context.SaveChangesAsync();
+            // Clear the cart after converting to an order
+            cart.ClearCart();
+            await transaction.CommitAsync();
+            return entity;
         }
 
         public async Task<bool> DeleteAsync(Guid id)

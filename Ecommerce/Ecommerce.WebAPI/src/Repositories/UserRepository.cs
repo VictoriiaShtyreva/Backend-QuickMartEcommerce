@@ -1,5 +1,6 @@
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
+using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.WebAPI.src.Data;
@@ -11,25 +12,44 @@ namespace Ecommerce.WebAPI.src.Repo
     {
         private readonly AppDbContext _context;
         private readonly DbSet<User> _users;
+        private readonly DbSet<Cart> _carts;
         public UserRepository(AppDbContext context)
         {
             _context = context;
             _users = _context.Users;
+            _carts = _context.Carts;
         }
 
         public async Task<User> CreateAsync(User entity)
         {
-            _context.Users.Add(entity);
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            _users.Add(entity);
             await _context.SaveChangesAsync();
+            var cart = new Cart { UserId = entity.Id };
+            _carts.Add(cart);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
             return entity;
         }
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var user = await _context.Users.FindAsync(id);
-            if (user == null) return false;
+            var transaction = await _context.Database.BeginTransactionAsync();
+            var user = await _context.Users.Include(u => u.Cart).FirstOrDefaultAsync(u => u.Id == id);
+            if (user == null)
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
+            // Delete the cart if it exists
+            if (user.Cart != null)
+            {
+                _context.Carts.Remove(user.Cart);
+            }
+            // Delete the user
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
             return true;
         }
 
