@@ -74,7 +74,7 @@ namespace Ecommerce.WebAPI.src.Repositories
             return await products.ToListAsync();
         }
 
-        public async Task<Category> UpdateAsync(Category entity)
+        public async Task<Category?> UpdateAsync(Category entity)
         {
             var category = await _context.Categories.FindAsync(entity.Id);
             if (category == null) return null!;

@@ -5,7 +5,7 @@ namespace Ecommerce.Core.src.Interfaces
         Task<IEnumerable<T>> GetAllAsync(QueryOptions options);
         Task<T> GetByIdAsync(Guid id);
         Task<T> CreateAsync(T entity);
-        Task<T> UpdateAsync(T entity);
+        Task<T?> UpdateAsync(T entity);
         Task<bool> DeleteAsync(Guid id);
     }
 }

@@ -49,7 +49,7 @@ namespace Ecommerce.WebAPI.src.Repositories
                .ToListAsync();
         }
 
-        public async Task<ProductImage> UpdateAsync(ProductImage entity)
+        public async Task<ProductImage?> UpdateAsync(ProductImage entity)
         {
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();

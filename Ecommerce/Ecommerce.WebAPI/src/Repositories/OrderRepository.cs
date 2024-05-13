@@ -93,7 +93,7 @@ namespace Ecommerce.WebAPI.src.Repositories
             return order;
         }
 
-        public async Task<Order> UpdateAsync(Order entity)
+        public async Task<Order?> UpdateAsync(Order entity)
         {
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();

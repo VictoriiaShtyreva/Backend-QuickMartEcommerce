@@ -96,7 +96,7 @@ namespace Ecommerce.WebAPI.src.Repositories
                                  .ToListAsync();
         }
 
-        public async Task<Review> UpdateAsync(Review entity)
+        public async Task<Review?> UpdateAsync(Review entity)
         {
             var existingReview = await _reviews.FindAsync(entity.Id);
             if (existingReview == null) return null!;

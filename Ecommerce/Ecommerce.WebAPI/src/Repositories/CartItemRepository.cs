@@ -76,7 +76,7 @@ namespace Ecommerce.WebAPI.src.Repositories
                .SingleOrDefaultAsync(ci => ci.Id == id) ?? throw AppException.NotFound();
         }
 
-        public async Task<CartItem> UpdateAsync(CartItem entity)
+        public async Task<CartItem?> UpdateAsync(CartItem entity)
         {
             var existingCartItem = await _cartItems.FindAsync(entity.Id) ?? throw AppException.NotFound();
             existingCartItem.Quantity = entity.Quantity;

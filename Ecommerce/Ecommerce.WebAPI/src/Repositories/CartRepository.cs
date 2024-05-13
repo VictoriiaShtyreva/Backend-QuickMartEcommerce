@@ -94,7 +94,7 @@ namespace Ecommerce.WebAPI.src.Repositories
                  .FirstOrDefaultAsync(c => c.UserId == userId) ?? throw AppException.NotFound();
         }
 
-        public async Task<Cart> UpdateAsync(Cart entity)
+        public async Task<Cart?> UpdateAsync(Cart entity)
         {
             _carts.Update(entity);
             await _context.SaveChangesAsync();

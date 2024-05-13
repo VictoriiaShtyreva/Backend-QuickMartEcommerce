@@ -106,7 +106,7 @@ namespace Ecommerce.WebAPI.src.Repo
             return true;
         }
 
-        public async Task<User> UpdateAsync(User entity)
+        public async Task<User?> UpdateAsync(User entity)
         {
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
