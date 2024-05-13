@@ -8,14 +8,16 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
         public Guid UserId { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Processing;
         public decimal TotalPrice { get; set; } = 0;
-        private readonly HashSet<OrderItem> _orderItems;
-        public IReadOnlyCollection<OrderItem> OrderItems => _orderItems;
-        public User? User { get; set; }
+        private readonly HashSet<OrderItem>? _orderItems;
+        public virtual IReadOnlyCollection<OrderItem>? OrderItems => _orderItems;
+        public virtual User? User { get; set; }
 
+        public Order() { }
         public Order(Guid userId)
         {
+            Guard.Against.Default(userId, nameof(userId));
             Id = Guid.NewGuid();
-            UserId = Guard.Against.Default(userId, nameof(userId));
+            UserId = userId;
             _orderItems = new HashSet<OrderItem>(new OrderItemComparer());
         }
 

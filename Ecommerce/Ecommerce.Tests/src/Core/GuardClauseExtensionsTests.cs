@@ -5,7 +5,7 @@ using FluentAssertions;
 
 namespace Ecommerce.Tests.src.Core
 {
-    public class GuardClauseExtensionsTests
+    public partial class GuardClauseExtensionsTests
     {
         [Theory]
         [InlineData("example@example.com", true)]
@@ -41,7 +41,7 @@ namespace Ecommerce.Tests.src.Core
         public void EmailRegex_Should_Correctly_Validate_Emails(string email, bool isValid)
         {
             // Arrange
-            Regex emailRegex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
+            Regex emailRegex = MyRegex();
 
             // Act
             bool result = emailRegex.IsMatch(email);
@@ -49,5 +49,8 @@ namespace Ecommerce.Tests.src.Core
             // Assert
             result.Should().Be(isValid);
         }
+
+        [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
+        private static partial Regex MyRegex();
     }
 }

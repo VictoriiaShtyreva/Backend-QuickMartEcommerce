@@ -8,15 +8,20 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
         public Guid CartId { get; set; }
         public Guid ProductId { get; set; }
         public int Quantity { get; set; }
-        public Cart? Cart { get; set; }
-        public Product? Product { get; set; }
+        public virtual Cart? Cart { get; set; }
+        public virtual Product? Product { get; set; }
 
+        public CartItem() { }
         public CartItem(Guid cartId, Guid productId, int quantity)
         {
+            Guard.Against.Default(productId, nameof(productId));
+            Guard.Against.Default(cartId, nameof(cartId));
+            Guard.Against.NegativeOrZero(quantity, nameof(quantity));
+
             Id = Guid.NewGuid();
-            CartId = Guard.Against.Default(cartId, nameof(cartId));
-            ProductId = Guard.Against.Default(productId, nameof(productId));
-            Quantity = Guard.Against.NegativeOrZero(quantity, nameof(quantity));
+            CartId = cartId;
+            ProductId = productId;
+            Quantity = quantity;
         }
 
         // Method to add quantity to the cart item

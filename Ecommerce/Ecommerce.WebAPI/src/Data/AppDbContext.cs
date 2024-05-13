@@ -2,6 +2,7 @@ using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Entities.OrderAggregate;
 using Ecommerce.Core.src.ValueObjects;
+using Ecommerce.WebAPI.src.ExternalService;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.WebAPI.src.Data
@@ -9,24 +10,22 @@ namespace Ecommerce.WebAPI.src.Data
     public class AppDbContext : DbContext
     {
         private readonly IConfiguration _config;
+        private readonly PasswordService _passwordService;
+        public DbSet<Product> Products { get; set; } = null!;
+        public DbSet<User> Users { get; set; } = null!;
+        public DbSet<Review> Reviews { get; set; } = null!;
+        public DbSet<Category> Categories { get; set; } = null!;
+        public DbSet<Order> Orders { get; set; } = null!;
+        public DbSet<OrderItem> OrderItems { get; set; } = null!;
+        public DbSet<Cart> Carts { get; set; } = null!;
+        public DbSet<CartItem> CartItems { get; set; } = null!;
+        public DbSet<ProductImage> ProductImages { get; set; } = null!;
+        public DbSet<ProductSnapshot> ProductSnapshots { get; set; } = null!;
 
-        #region Properties
-        public DbSet<Product> Products { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<Review> Reviews { get; set; }
-        public DbSet<Category> Categories { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
-        public DbSet<Cart> Carts { get; set; }
-        public DbSet<CartItem> CartItems { get; set; }
-        public DbSet<ProductImage> ProductImages { get; set; }
-        public DbSet<ProductSnapshot> ProductSnapshots { get; set; }
-        #endregion
-
-        #region Constructors
-        public AppDbContext(DbContextOptions<AppDbContext> options, IConfiguration config) : base(options)
+        public AppDbContext(DbContextOptions<AppDbContext> options, IConfiguration config, PasswordService passwordService) : base(options)
         {
             _config = config;
+            _passwordService = passwordService;
             ChangeTracker.LazyLoadingEnabled = true;
         }
 
@@ -35,23 +34,9 @@ namespace Ecommerce.WebAPI.src.Data
             AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
             AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
         }
-        #endregion
 
-        #region OnConfiguring
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseLazyLoadingProxies();
-        }
-        #endregion
-
-        #region OnModelCreating
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Enums registration for PostgreSQL
-            modelBuilder.HasPostgresEnum<UserRole>();
-            modelBuilder.HasPostgresEnum<OrderStatus>();
-            base.OnModelCreating(modelBuilder);
-
             // User Entity Configuration
             modelBuilder.Entity<User>(entity =>
             {
@@ -63,7 +48,6 @@ namespace Ecommerce.WebAPI.src.Data
                 entity.Property(u => u.Password).IsRequired().HasMaxLength(255);
                 entity.Property(u => u.AddressLine1).IsRequired().HasMaxLength(255);
                 entity.Property(u => u.AddressLine2).HasMaxLength(255);
-                entity.Property(u => u.PostCode).IsRequired().HasColumnType("integer");
                 entity.Property(u => u.City).IsRequired().HasMaxLength(100);
                 entity.Property(u => u.Country).IsRequired().HasMaxLength(100);
             });
@@ -100,9 +84,7 @@ namespace Ecommerce.WebAPI.src.Data
                 entity.HasKey(p => p.Id).HasName("products_pkey");
                 entity.Property(p => p.Title).IsRequired().HasMaxLength(255);
                 entity.HasIndex(p => p.Title).IsUnique().HasDatabaseName("title_unique");
-                entity.Property(p => p.Description).HasColumnType("text");
                 entity.Property(p => p.Price).HasColumnType("numeric").HasPrecision(18, 2);
-                entity.Property(p => p.Inventory).HasColumnType("integer").HasDefaultValue(0);
                 entity.HasOne(p => p.Category).WithMany(c => c.Products).HasForeignKey(p => p.CategoryId).OnDelete(DeleteBehavior.SetNull);
             });
             modelBuilder.Entity<Product>().ToTable(p => p.HasCheckConstraint("products_price_check", "price > 0"));
@@ -172,10 +154,13 @@ namespace Ecommerce.WebAPI.src.Data
             modelBuilder.Entity<Review>().ToTable(r => r.HasCheckConstraint("reviews_updated_at_check", "updated_at >= created_at"));
             modelBuilder.Entity<Review>().ToTable(r => r.HasCheckConstraint("reviews_rating_check", "rating >= 1 AND rating <= 5"));
 
+            // Enums registration for PostgreSQL
+            modelBuilder.HasPostgresEnum<UserRole>();
+            modelBuilder.HasPostgresEnum<OrderStatus>();
             // Fetch seed data
             SeedData(modelBuilder);
+            base.OnModelCreating(modelBuilder);
         }
-        #endregion
 
         private void SeedData(ModelBuilder modelBuilder)
         {
@@ -194,6 +179,10 @@ namespace Ecommerce.WebAPI.src.Data
             modelBuilder.Entity<ProductImage>().HasData(productImages);
 
             var users = SeedingData.GetUsers();
+            foreach (var user in users)
+            {
+                user.Password = _passwordService.HashPassword(user, user.Password!);
+            }
             modelBuilder.Entity<User>().HasData(users);
         }
     }

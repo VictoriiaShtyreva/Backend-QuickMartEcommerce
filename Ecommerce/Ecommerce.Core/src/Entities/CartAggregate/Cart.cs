@@ -6,15 +6,15 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
     public class Cart : TimeStamp
     {
         public Guid UserId { get; set; }
-        public User? User { get; set; }
+        public virtual User? User { get; set; }
         private readonly HashSet<CartItem>? _items;
-        public IReadOnlyCollection<CartItem>? CartItems => _items;
-
+        public virtual ICollection<CartItem>? CartItems => _items;
         public Cart() { }
         public Cart(Guid userId)
         {
+            Guard.Against.Default(userId, nameof(userId));
             Id = Guid.NewGuid();
-            UserId = Guard.Against.Default(userId, nameof(userId));
+            UserId = userId;
             _items = new HashSet<CartItem>(new CartItemComparer());
         }
 

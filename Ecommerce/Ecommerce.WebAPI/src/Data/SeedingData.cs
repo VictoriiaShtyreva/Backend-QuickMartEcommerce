@@ -1,18 +1,11 @@
 using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.ValueObjects;
-using Ecommerce.WebAPI.src.ExternalService;
 
 namespace Ecommerce.WebAPI.src.Data
 {
     public class SeedingData
     {
         private static Random random = new Random();
-        private static PasswordService? _passwordService;
-
-        public SeedingData(PasswordService passwordService)
-        {
-            _passwordService = passwordService;
-        }
         private static int GetRandomNumber()
         {
             return random.Next(1, 11);
@@ -90,17 +83,49 @@ namespace Ecommerce.WebAPI.src.Data
         {
             var users = new List<User>
             {
-                new User("Alice", "alice@example.com", "", $"https://picsum.photos/200/?random={GetRandomNumberForImage()}", UserRole.Admin, "123 Anywhere St", "Apt 2", 12345, "Anytown", "USA"),
-                new User("Bob", "bob@example.com", "", $"https://picsum.photos/200/?random={GetRandomNumberForImage()}", UserRole.Customer, "456 Somewhere Ave", "Suite 300", 54321, "Othertown", "USA"),
-                new User("Carol", "carol@example.com", "", $"https://picsum.photos/200/?random={GetRandomNumberForImage()}", UserRole.Customer, "789 Nowhere Blvd", "Box 5", 98765, "Lostcity", "USA")
+               new User
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Alice",
+                    Email = "alice@example.com",
+                    Password = "alice@123",
+                    Avatar = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
+                    Role = UserRole.Admin,
+                    AddressLine1 = "123 Anywhere St",
+                    AddressLine2 = "Apt 2",
+                    PostCode = 12345,
+                    City = "Anytown",
+                    Country = "USA"
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Bob",
+                    Email = "bob@example.com",
+                    Password = "bob@123",
+                    Avatar = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
+                    Role = UserRole.Customer,
+                    AddressLine1 = "456 Somewhere Ave",
+                    AddressLine2 = "Suite 300",
+                    PostCode = 54321,
+                    City = "Othertown",
+                    Country = "USA"
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Carol",
+                    Email = "carol@example.com",
+                    Password = "carol@123",
+                    Avatar = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
+                    Role = UserRole.Customer,
+                    AddressLine1 = "789 Nowhere Blvd",
+                    AddressLine2 = "Box 5",
+                    PostCode = 98765,
+                    City = "Lostcity",
+                    Country = "USA"
+                }
             };
-
-            // Hash passwords 
-            foreach (var user in users)
-            {
-                user.Password = _passwordService!.HashPassword(user, "Password@123");
-            }
-
             return users;
         }
         #endregion

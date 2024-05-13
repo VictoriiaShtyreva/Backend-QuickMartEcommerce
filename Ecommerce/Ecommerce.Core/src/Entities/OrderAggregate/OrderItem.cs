@@ -8,9 +8,10 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
         public Guid OrderId { get; set; }
         public int Quantity { get; set; }
         public decimal Price { get; set; }
-        public Order? Order { get; set; }
-        public ProductSnapshot ProductSnapshot { get; set; }
+        public virtual Order? Order { get; set; }
+        public virtual ProductSnapshot? ProductSnapshot { get; set; }
 
+        public OrderItem() { }
         public OrderItem(Guid orderId, ProductSnapshot productSnapshot, int quantity)
         {
             Id = Guid.NewGuid();

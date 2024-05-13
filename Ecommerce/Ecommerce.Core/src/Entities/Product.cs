@@ -6,16 +6,17 @@ namespace Ecommerce.Core.src.Entities
 {
     public class Product : BaseEntity
     {
-        public string Title { get; set; }
+        public string? Title { get; set; }
         public decimal Price { get; set; }
-        public string Description { get; set; }
-        public Category? Category { get; set; }
+        public string? Description { get; set; }
+        public virtual Category? Category { get; set; }
         public Guid CategoryId { get; set; }
         public int Inventory { get; set; }
-        public IEnumerable<ProductImage>? Images { get; set; }
-        public IEnumerable<CartItem>? CartItems { get; set; }
-        public IEnumerable<Review>? Reviews { get; set; }
+        public virtual IEnumerable<ProductImage>? Images { get; set; }
+        public virtual IEnumerable<CartItem>? CartItems { get; set; }
+        public virtual IEnumerable<Review>? Reviews { get; set; }
 
+        public Product() { }
         public Product(string title, decimal price, string description, Guid categoryId, int inventory)
         {
             Id = Guid.NewGuid();

@@ -28,7 +28,7 @@ namespace Ecommerce.Tests.src.Core
             cart.AddItem(initialItem.ProductId, quantityToAdd);
 
             // Assert
-            Assert.Equal(expectedCount, cart.CartItems.Count);
+            Assert.Equal(expectedCount, cart.CartItems!.Count);
             Assert.Equal(initialItem.Quantity + quantityToAdd, cart.CartItems.First(i => i.ProductId == initialItem.ProductId).Quantity);
         }
 
@@ -44,7 +44,7 @@ namespace Ecommerce.Tests.src.Core
             cart.RemoveItem(initialItem.ProductId, quantityToRemove);
 
             // Assert
-            var item = cart.CartItems.FirstOrDefault(i => i.ProductId == initialItem.ProductId);
+            var item = cart.CartItems!.FirstOrDefault(i => i.ProductId == initialItem.ProductId);
             Assert.NotNull(item);
             Assert.Equal(expectedFinalQuantity, item.Quantity);
         }
@@ -61,7 +61,7 @@ namespace Ecommerce.Tests.src.Core
             cart.ClearCart();
 
             // Assert
-            Assert.Empty(cart.CartItems);
+            Assert.Empty(cart.CartItems!);
         }
     }
 }

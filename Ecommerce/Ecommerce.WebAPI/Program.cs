@@ -1,7 +1,11 @@
+using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.WebAPI.src.Data;
+using Ecommerce.WebAPI.src.ExternalService;
 using Ecommerce.WebAPI.src.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Npgsql;
@@ -9,8 +13,6 @@ using Npgsql;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 // Add all controllers
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -49,10 +51,11 @@ dataSourceBuilder.MapEnum<OrderStatus>();
 var dataSource = dataSourceBuilder.Build();
 builder.Services.AddDbContext<AppDbContext>
 (
-    options =>
-    options.UseNpgsql(dataSource)
-    .UseSnakeCaseNamingConvention()
-    .AddInterceptors(new TimeStampInteceptor())
+options =>
+options.UseNpgsql(dataSource)
+.UseSnakeCaseNamingConvention()
+.UseLazyLoadingProxies()
+.AddInterceptors(new TimeStampInteceptor())
 );
 
 // CORS
@@ -68,10 +71,12 @@ builder.Services.AddCors(options =>
 });
 
 // service registration -> automatically create all instances of dependencies
-
-
+builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<PasswordService>();
 
 var app = builder.Build();
+
+app.UseCors();
 
 app.UseSwagger();
 app.UseSwaggerUI();

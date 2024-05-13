@@ -7,9 +7,11 @@ namespace Ecommerce.Core.src.Entities
         public Guid UserId { get; set; }
         public Guid ProductId { get; set; }
         public int Rating { get; set; }
-        public string Content { get; set; }
-        public User? User { get; set; }
-        public Product? Product { get; set; }
+        public string? Content { get; set; }
+        public virtual User? User { get; set; }
+        public virtual Product? Product { get; set; }
+
+        public Review() { }
 
         public Review(Guid userId, Guid productId, int rating, string content)
         {

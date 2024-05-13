@@ -5,8 +5,10 @@ namespace Ecommerce.Core.src.Entities
     public class ProductImage : BaseEntity
     {
         public Guid ProductId { get; set; }
-        public string Url { get; set; }
-        public Product? Product { get; set; }
+        public string? Url { get; set; }
+        public virtual Product? Product { get; set; }
+
+        public ProductImage() { }
         public ProductImage(Guid productId, string url)
         {
             Id = Guid.NewGuid();
