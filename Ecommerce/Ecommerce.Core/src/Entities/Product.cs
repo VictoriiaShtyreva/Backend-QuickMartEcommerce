@@ -18,6 +18,7 @@ namespace Ecommerce.Core.src.Entities
 
         public Product(string title, decimal price, string description, Guid categoryId, int inventory)
         {
+            Id = Guid.NewGuid();
             Title = Guard.Against.NullOrWhiteSpace(title, nameof(title));
             Price = Guard.Against.NegativeOrZero(price, nameof(price));
             Description = Guard.Against.NullOrWhiteSpace(description, nameof(description));
