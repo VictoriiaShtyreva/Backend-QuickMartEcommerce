@@ -7,9 +7,10 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
     {
         public Guid UserId { get; set; }
         public User? User { get; set; }
-        private readonly HashSet<CartItem> _items;
-        public IReadOnlyCollection<CartItem> CartItems => _items;
+        private readonly HashSet<CartItem>? _items;
+        public IReadOnlyCollection<CartItem>? CartItems => _items;
 
+        public Cart() { }
         public Cart(Guid userId)
         {
             Id = Guid.NewGuid();
@@ -22,14 +23,14 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
         {
             Guard.Against.NegativeOrZero(quantity, nameof(quantity));
 
-            var existingItem = _items.FirstOrDefault(i => i.ProductId == productId);
+            var existingItem = _items?.FirstOrDefault(i => i.ProductId == productId);
             if (existingItem != null)
             {
                 existingItem.AddQuantity(quantity);
             }
             else
             {
-                _items.Add(new CartItem(this.Id, productId, quantity));
+                _items?.Add(new CartItem(this.Id, productId, quantity));
             }
         }
 
@@ -39,19 +40,19 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
             Guard.Against.Default(productId, nameof(productId));
             Guard.Against.NegativeOrZero(quantity, nameof(quantity));
 
-            var existingItem = _items.FirstOrDefault(i => i.ProductId == productId);
+            var existingItem = _items?.FirstOrDefault(i => i.ProductId == productId);
             if (existingItem == null) return;
             existingItem.ReduceQuantity(quantity);
             if (existingItem.Quantity == 0)
             {
-                _items.Remove(existingItem);
+                _items?.Remove(existingItem);
             }
         }
 
         // Method to clear the cart
         public void ClearCart()
         {
-            _items.Clear();
+            _items?.Clear();
         }
 
         // A custom equality comparer for CartItem to define uniqueness in the HashSet

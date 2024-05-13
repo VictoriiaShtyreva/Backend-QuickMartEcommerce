@@ -22,10 +22,18 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
         // Method to create an OrderItem and add it to the order
         public void AddOrderItem(Product product, int quantity)
         {
+
             var productSnapshot = product.CreateSnapshot();
-            var orderItem = new OrderItem(this.Id, productSnapshot, quantity);
-            _orderItems.Add(orderItem);
-            // Recalculate the total price
+            var existingItem = _orderItems.FirstOrDefault(i => i.ProductSnapshot.ProductId == product.Id);
+            if (existingItem != null)
+            {
+                existingItem.Quantity += quantity;
+            }
+            else
+            {
+                var orderItem = new OrderItem(Id, productSnapshot, quantity);
+                _orderItems.Add(orderItem);
+            }
             CalculateTotalPrice();
         }
 
