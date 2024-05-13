@@ -1,17 +1,17 @@
 using Ecommerce.Core.src.Entities;
+using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.WebAPI.src.ExternalService;
-using Microsoft.AspNetCore.Identity;
 
 namespace Ecommerce.WebAPI.src.Data
 {
     public class SeedingData
     {
         private static Random random = new Random();
-        private static PasswordService _passwordService;
+        private static PasswordService? _passwordService;
 
-        public SeedingData(IPasswordHasher<User> passwordHasher)
+        public SeedingData(PasswordService passwordService)
         {
-            _passwordService = new PasswordService(passwordHasher);
+            _passwordService = passwordService;
         }
         private static int GetRandomNumber()
         {
@@ -88,18 +88,21 @@ namespace Ecommerce.WebAPI.src.Data
         #region Users
         public static List<User> GetUsers()
         {
-
             var users = new List<User>
             {
-                new User("Alice", "alice@example.com", _passwordService.HashPassword(null, "Password@123"), $"https://picsum.photos/200/?random={GetRandomNumberForImage()}", UserRole.Admin),
-                new User("Bob", "bob@example.com", _passwordService.HashPassword(null, "Password@123"), $"https://picsum.photos/200/?random={GetRandomNumberForImage()}", UserRole.Customer),
-                new User("Carol", "carol@example.com", _passwordService.HashPassword(null, "Password@123"), $"https://picsum.photos/200/?random={GetRandomNumberForImage()}", UserRole.Customer)
+                new User("Alice", "alice@example.com", "", $"https://picsum.photos/200/?random={GetRandomNumberForImage()}", UserRole.Admin, "123 Anywhere St", "Apt 2", 12345, "Anytown", "USA"),
+                new User("Bob", "bob@example.com", "", $"https://picsum.photos/200/?random={GetRandomNumberForImage()}", UserRole.Customer, "456 Somewhere Ave", "Suite 300", 54321, "Othertown", "USA"),
+                new User("Carol", "carol@example.com", "", $"https://picsum.photos/200/?random={GetRandomNumberForImage()}", UserRole.Customer, "789 Nowhere Blvd", "Box 5", 98765, "Lostcity", "USA")
             };
 
+            // Hash passwords 
+            foreach (var user in users)
+            {
+                user.Password = _passwordService!.HashPassword(user, "Password@123");
+            }
+
             return users;
-
         }
-
         #endregion
     }
 }

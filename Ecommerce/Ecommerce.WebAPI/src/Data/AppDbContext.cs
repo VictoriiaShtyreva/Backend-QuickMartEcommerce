@@ -40,11 +40,7 @@ namespace Ecommerce.WebAPI.src.Data
         #region OnConfiguring
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder
-                .UseLazyLoadingProxies()
-                .UseSnakeCaseNamingConvention()
-                .AddInterceptors(new TimeStampInteceptor());
-            base.OnConfiguring(optionsBuilder);
+            optionsBuilder.UseLazyLoadingProxies();
         }
         #endregion
 
