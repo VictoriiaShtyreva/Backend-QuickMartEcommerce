@@ -146,9 +146,7 @@ My project is organized as follows to maintain a clean and navigable codebase:
 |-- /Ecommerce
 |   |-- /Ecommerce.Core
 |   |   |-- /Common
-|   |   |   |-- ProductQueryOptions.cs        // Defines options for querying products, such as pagination and filtering criteria.
 |   |   |   |-- QueryOptions.cs               // Base class for query options, providing common properties like Sort.
-|   |   |   |-- UserQueryOptions.cs           // Specialized query options for user-related data retrieval.
 |   |   |   |-- UserCredential.cs             // Represents credentials for a user, used in authentication processes.
 |   |   |-- /Entities
 |   |   |   |-- BaseEntity.cs                 // Base class for all entities, containing common properties like Id.
@@ -158,9 +156,12 @@ My project is organized as follows to maintain a clean and navigable codebase:
 |   |   |   |-- Review.cs                     // Customer reviews for products, includes Rating and Comment.
 |   |   |   |-- TimeStamp.cs                  // Adds timestamps to entities, handled by TimeStampInterceptor for automatic updates.
 |   |   |   |-- User.cs                       // User profile information, including credentials and roles.
-|   |   |   |-- CartAggregate.cs              // Represents a shopping cart, including a collection of CartItems.
-|   |   |   |-- OrderAggregate.cs             // Details an order, encapsulating order items and transaction data.
-|   |-- /Interfaces
+|   |   |   |-- CartAggregate/                // Represents a shopping cart, including a collection of CartItems.
+|   |   |   |   |-- Cart.cs
+|   |   |   |   |-- CartItem.cs
+|   |   |   |-- OrderAggregate/               // Details an order, encapsulating order items and transaction data.
+|   |   |   |   |-- Order.cs
+|   |   |   |   |-- OrderItem.cs
 |   |   |-- /Interfaces
 |   |   |   |-- IBaseRepository.cs            // Generic interface for CRUD operations applicable to all entities.
 |   |   |   |-- ICartRepository.cs            // Specific operations for cart management not covered by the generic repository.
@@ -174,7 +175,7 @@ My project is organized as follows to maintain a clean and navigable codebase:
 |   |   |   |-- ProductSnapshot.cs            // A snapshot of product data at the time of transaction, used in order details.
 |   |   |   |-- UserRole.cs                   // Defines roles within the system to manage access control levels.
 |   |   |   |-- OrderStatus.cs                // Defines status of orders within the system to manage access control levels.
-|   |   |-- /Exceptions
+|   |   |-- /Extensions
 |   |       |-- ErrorDetails.cs               // Format for API error responses, includes status code and message.
 |   |       |-- AppException.cs               // Custom exception type for application-specific errors, used for unified handling.
 |   |
