@@ -1,3 +1,5 @@
+using Ecommerce.Core.src.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Ecommerce.WebAPI.src.Data
