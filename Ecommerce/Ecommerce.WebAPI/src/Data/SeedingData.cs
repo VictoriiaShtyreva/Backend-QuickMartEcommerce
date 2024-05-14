@@ -47,7 +47,7 @@ namespace Ecommerce.WebAPI.src.Data
 
             foreach (var category in GetCategories())
             {
-                products.AddRange(GenerateProductsForCategory(category, 10));
+                products.AddRange(GenerateProductsForCategory(category, 20));
             }
             return products;
         }
