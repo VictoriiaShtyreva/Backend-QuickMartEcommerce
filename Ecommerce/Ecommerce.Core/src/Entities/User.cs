@@ -12,12 +12,6 @@ namespace Ecommerce.Core.src.Entities
         public string? Password { get; set; }
         public string? Avatar { get; set; }
         public UserRole Role { get; set; } = UserRole.Customer;
-        public string? AddressLine1 { get; set; }
-        public string? AddressLine2 { get; set; }
-        public int PostCode { get; set; }
-        public string? City { get; set; }
-        public string? Country { get; set; }
-
         public virtual IEnumerable<Order>? Orders { get; set; }
         public virtual Cart? Cart { get; set; }
         public virtual IEnumerable<Review>? Reviews { get; set; }

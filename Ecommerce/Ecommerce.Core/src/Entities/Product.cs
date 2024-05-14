@@ -30,7 +30,7 @@ namespace Ecommerce.Core.src.Entities
         // Method to create a snapshot of the product
         public ProductSnapshot CreateSnapshot()
         {
-            return new ProductSnapshot(Id, Title, Price, Description);
+            return new ProductSnapshot(Id, Title!, Price, Description!);
         }
     }
 }
