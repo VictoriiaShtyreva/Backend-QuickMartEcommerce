@@ -33,10 +33,17 @@ namespace Ecommerce.WebAPI.src.Data
         public static List<Product> GenerateProductsForCategory(Category category, int count)
         {
             var products = new List<Product>();
+            var materials = new List<string> { "wood", "metal", "plastic", "glass", "composite" };
+            var features = new List<string> { "durable", "lightweight", "eco-friendly", "compact", "ergonomic design" };
+            var uses = new List<string> { "indoor", "outdoor", "personal", "commercial", "educational" };
 
             for (int i = 1; i <= count; i++)
             {
-                var product = new Product($"{category.Name} Product {i}", GetRandomNumber() * 100, $"Description for {category.Name} Product {i}", category.Id, 100);
+                var material = materials[random.Next(materials.Count)];
+                var feature = features[random.Next(features.Count)];
+                var use = uses[random.Next(uses.Count)];
+                var description = $"The {category.Name} Product {i} is a {feature}, {material}-made product suitable for {use} use. With its {GetRandomNumber()}% satisfaction rating, it's perfect for any {category.Name!.ToLower()} needs.";
+                var product = new Product($"{category.Name} Product {i}", GetRandomNumber() * 100, description, category.Id, 100);
                 products.Add(product);
             }
             return products;
