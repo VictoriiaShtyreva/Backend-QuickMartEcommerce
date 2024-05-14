@@ -6,7 +6,7 @@ using Ecommerce.Service.src.Interfaces;
 
 namespace Ecommerce.Service.src.Services
 {
-    public class BaseService<TReadDTO, TCreateDTO, TUpdateDTO, TEntity, QueryOptions> : IBaseService<TReadDTO, TCreateDTO, TUpdateDTO, QueryOptions>
+    public class BaseService<TEntity, TReadDTO, TCreateDTO, TUpdateDTO, QueryOptions> : IBaseService<TReadDTO, TCreateDTO, TUpdateDTO, QueryOptions>
        where TEntity : BaseEntity, new()
     {
         protected readonly IBaseRepository<TEntity, QueryOptions> _repository;
@@ -32,6 +32,7 @@ namespace Ecommerce.Service.src.Services
         {
             if (!await _repository.DeleteAsync(id))
             {
+                return false;
                 throw AppException.NotFound();
             }
             return true;

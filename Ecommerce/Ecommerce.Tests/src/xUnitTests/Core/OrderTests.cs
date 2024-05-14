@@ -21,8 +21,9 @@ namespace Ecommerce.Tests.src.Core
         [MemberData(nameof(OrderItemData))]
         public void AddOrderItem_CalculatesTotalCorrectly(Product product, int quantity, decimal expectedTotal)
         {
+            var address = new Address("Test Street", "Test City", 00180, "Test Zip");
             // Arrange
-            var order = new Order(Guid.NewGuid());
+            var order = new Order(Guid.NewGuid(), address);
 
             // Act
             order.AddOrderItem(product, quantity);
