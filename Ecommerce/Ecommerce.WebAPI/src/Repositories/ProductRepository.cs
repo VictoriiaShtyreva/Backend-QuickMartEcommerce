@@ -83,7 +83,7 @@ namespace Ecommerce.WebAPI.src.Repositories
             var topProductIds = await _context.OrderItems
                 .Include(oi => oi.Order)
                 .Where(oi => oi.Order!.Status == OrderStatus.Completed)
-                .GroupBy(oi => oi.ProductSnapshot.ProductId)
+                .GroupBy(oi => oi.ProductSnapshot!.ProductId)
                 .Select(g => new
                 {
                     ProductId = g.Key,
