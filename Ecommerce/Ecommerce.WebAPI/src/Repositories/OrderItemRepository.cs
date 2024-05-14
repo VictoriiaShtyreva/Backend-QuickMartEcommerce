@@ -53,8 +53,8 @@ namespace Ecommerce.WebAPI.src.Repositories
                     break;
                 case SortType.byTitle:
                     query = sortOrder == SortOrder.Ascending ?
-                            query.OrderBy(oi => oi.ProductSnapshot.Title) :
-                            query.OrderByDescending(oi => oi.ProductSnapshot.Title);
+                            query.OrderBy(oi => oi.ProductSnapshot!.Title) :
+                            query.OrderByDescending(oi => oi.ProductSnapshot!.Title);
                     break;
                 default:
                     query = sortOrder == SortOrder.Ascending ?
@@ -71,7 +71,7 @@ namespace Ecommerce.WebAPI.src.Repositories
             return await _orderItems.FindAsync(id) ?? throw AppException.NotFound();
         }
 
-        public async Task<OrderItem> UpdateAsync(OrderItem entity)
+        public async Task<OrderItem?> UpdateAsync(OrderItem entity)
         {
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();

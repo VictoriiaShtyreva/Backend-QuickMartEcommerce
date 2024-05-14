@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using Ecommerce.Core.src.Common;
+using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.WebAPI.src.Middleware
 {
@@ -45,7 +46,16 @@ namespace Ecommerce.WebAPI.src.Middleware
                     }));
                     logger.LogError($"Application error: {appEx.Message}", appEx);
                     break;
-
+                case DbUpdateException dbUpdateEx:
+                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    string innerMessage = dbUpdateEx.InnerException?.Message ?? "A database update error occurred.";
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(new ErrorDetails
+                    {
+                        StatusCode = context.Response.StatusCode,
+                        Message = innerMessage
+                    }));
+                    logger.LogError($"Database update error: {innerMessage}", dbUpdateEx);
+                    break;
                 case ArgumentException argEx:
                     // Bad Request for argument-related issues
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -56,7 +66,6 @@ namespace Ecommerce.WebAPI.src.Middleware
                     }));
                     logger.LogWarning($"Bad request: {argEx.Message}", argEx);
                     break;
-
                 case InvalidOperationException opEx:
                     // Unprocessable Entity for invalid operations
                     context.Response.StatusCode = (int)HttpStatusCode.UnprocessableEntity;
@@ -67,7 +76,6 @@ namespace Ecommerce.WebAPI.src.Middleware
                     }));
                     logger.LogWarning($"Invalid operation: {opEx.Message}", opEx);
                     break;
-
                 default:
                     // Internal Server Error for general unhandled exceptions
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

@@ -19,24 +19,45 @@ namespace Ecommerce.WebAPI.src.Repositories
             _cartRepository = cartRepository;
         }
 
+        // Interface compliant CreateAsync
         public async Task<Order> CreateAsync(Order entity)
         {
+            return await CreateAsync(entity, null!);
+        }
+
+        // Overloaded CreateAsync to handle Order with Address
+        public async Task<Order> CreateAsync(Order entity, Address address)
+        {
             using var transaction = await _context.Database.BeginTransactionAsync();
-            // Add the new order
-            _orders.Add(entity);
-            await _context.SaveChangesAsync();
-            // Retrieve the cart items and convert them to order items
-            var cart = await _cartRepository.GetCartByUserIdAsync(entity.UserId);
-            foreach (var cartItem in cart.CartItems!)
+            try
             {
-                entity.AddOrderItem(cartItem.Product!, cartItem.Quantity);
+                if (address != null)
+                {
+                    _context.Addresses.Add(address);
+                    await _context.SaveChangesAsync();
+                    entity.AddressId = address.Id;
+                }
+                // Add the new order
+                _orders.Add(entity);
+                await _context.SaveChangesAsync();
+                // Retrieve the cart items and convert them to order items
+                var cart = await _cartRepository.GetCartByUserIdAsync(entity.UserId);
+                foreach (var cartItem in cart.CartItems!)
+                {
+                    entity.AddOrderItem(cartItem.Product!, cartItem.Quantity);
+                }
+                // Save changes to order items
+                await _context.SaveChangesAsync();
+                // Clear the cart after converting to an order
+                cart.ClearCart();
+                await transaction.CommitAsync();
+                return entity;
             }
-            // Save changes to order items
-            await _context.SaveChangesAsync();
-            // Clear the cart after converting to an order
-            cart.ClearCart();
-            await transaction.CommitAsync();
-            return entity;
+            catch (DbUpdateException)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<bool> DeleteAsync(Guid id)
@@ -89,7 +110,7 @@ namespace Ecommerce.WebAPI.src.Repositories
 
         public async Task<IEnumerable<Order>> GetOrderByUserIdAsync(Guid userId)
         {
-            var order = await _orders.Include(o => o.OrderItems).ThenInclude(oi => oi.ProductSnapshot).Where(x => x.UserId == userId).ToListAsync();
+            var order = await _orders.Include(o => o.OrderItems!).ThenInclude(oi => oi.ProductSnapshot).Where(x => x.UserId == userId).ToListAsync();
             return order;
         }
 

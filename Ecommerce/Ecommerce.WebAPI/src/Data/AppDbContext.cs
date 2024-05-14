@@ -17,6 +17,7 @@ namespace Ecommerce.WebAPI.src.Data
         public DbSet<Category> Categories { get; set; } = null!;
         public DbSet<Order> Orders { get; set; } = null!;
         public DbSet<OrderItem> OrderItems { get; set; } = null!;
+        public DbSet<Address> Addresses { get; set; } = null!;
         public DbSet<Cart> Carts { get; set; } = null!;
         public DbSet<CartItem> CartItems { get; set; } = null!;
         public DbSet<ProductImage> ProductImages { get; set; } = null!;
@@ -46,12 +47,19 @@ namespace Ecommerce.WebAPI.src.Data
                 entity.HasIndex(u => u.Email).IsUnique().HasDatabaseName("users_email_key");
                 entity.Property(u => u.Name).IsRequired().HasMaxLength(255);
                 entity.Property(u => u.Password).IsRequired().HasMaxLength(255);
-                entity.Property(u => u.AddressLine1).IsRequired().HasMaxLength(255);
-                entity.Property(u => u.AddressLine2).HasMaxLength(255);
-                entity.Property(u => u.City).IsRequired().HasMaxLength(100);
-                entity.Property(u => u.Country).IsRequired().HasMaxLength(100);
             });
             modelBuilder.Entity<User>().ToTable(u => u.HasCheckConstraint("users_avatar_check", "avatar LIKE 'http%' OR avatar = ''"));
+
+            // Address Entity Configuration
+            modelBuilder.Entity<Address>(entity =>
+            {
+                entity.ToTable("addresses");
+                entity.HasKey(a => a.Id).HasName("addresses_pkey");
+                entity.Property(a => a.AddressLine).IsRequired().HasMaxLength(255);
+                entity.Property(a => a.City).IsRequired().HasMaxLength(100);
+                entity.Property(a => a.PostalCode).IsRequired();
+                entity.Property(a => a.Country).IsRequired().HasMaxLength(100);
+            });
 
             // Order Entity Configuration
             modelBuilder.Entity<Order>(entity =>
@@ -62,6 +70,7 @@ namespace Ecommerce.WebAPI.src.Data
                 entity.Property(o => o.CreatedAt).HasDefaultValueSql("now()");
                 entity.Property(o => o.UpdatedAt).HasDefaultValueSql("now()");
                 entity.HasOne(o => o.User).WithMany(u => u.Orders).HasForeignKey(o => o.UserId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(o => o.ShippingAddress).WithOne().HasForeignKey<Order>(o => o.AddressId).OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<Order>().ToTable(o => o.HasCheckConstraint("orders_total_price_check", "total_price > 0"));
             modelBuilder.Entity<Order>().ToTable(o => o.HasCheckConstraint("orders_updated_at_check", "updated_at >= created_at"));

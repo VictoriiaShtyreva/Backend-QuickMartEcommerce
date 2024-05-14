@@ -6,18 +6,21 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
     public class Order : TimeStamp
     {
         public Guid UserId { get; set; }
+        public Guid AddressId { get; set; }
         public OrderStatus Status { get; set; } = OrderStatus.Processing;
         public decimal TotalPrice { get; set; } = 0;
         private readonly HashSet<OrderItem>? _orderItems;
         public virtual IReadOnlyCollection<OrderItem>? OrderItems => _orderItems;
         public virtual User? User { get; set; }
+        public virtual Address? ShippingAddress { get; set; }
 
         public Order() { }
-        public Order(Guid userId)
+        public Order(Guid userId, Address shippingAddress)
         {
             Guard.Against.Default(userId, nameof(userId));
             Id = Guid.NewGuid();
             UserId = userId;
+            ShippingAddress = shippingAddress;
             _orderItems = new HashSet<OrderItem>(new OrderItemComparer());
         }
 
@@ -26,7 +29,7 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
         {
 
             var productSnapshot = product.CreateSnapshot();
-            var existingItem = _orderItems.FirstOrDefault(i => i.ProductSnapshot.ProductId == product.Id);
+            var existingItem = _orderItems!.FirstOrDefault(i => i.ProductSnapshot!.ProductId == product.Id);
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;
@@ -34,7 +37,7 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
             else
             {
                 var orderItem = new OrderItem(Id, productSnapshot, quantity);
-                _orderItems.Add(orderItem);
+                _orderItems!.Add(orderItem);
             }
             CalculateTotalPrice();
         }
@@ -42,7 +45,7 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
         // Method to calculate the total price of the order
         public void CalculateTotalPrice()
         {
-            TotalPrice = _orderItems.Sum(item => item.Price * item.Quantity);
+            TotalPrice = _orderItems!.Sum(item => item.Price * item.Quantity);
         }
 
         // A custom equality comparer for OrderItem to define uniqueness in the HashSet

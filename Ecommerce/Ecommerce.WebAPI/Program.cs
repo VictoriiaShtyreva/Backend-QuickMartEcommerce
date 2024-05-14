@@ -71,6 +71,7 @@ builder.Services.AddCors(options =>
 });
 
 // service registration -> automatically create all instances of dependencies
+builder.Services.AddScoped<ExceptionMiddleware>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<PasswordService>();
 
@@ -82,6 +83,8 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseRouting();
 
+app.UseHttpsRedirection();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -89,7 +92,6 @@ app.UseExceptionHandler("/Error");
 app.UseDeveloperExceptionPage();
 app.UseMiddleware<ExceptionMiddleware>();
 
-app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
