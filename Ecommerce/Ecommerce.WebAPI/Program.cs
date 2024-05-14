@@ -1,5 +1,6 @@
 using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.ValueObjects;
+using Ecommerce.Service.src.Shared;
 using Ecommerce.WebAPI.src.Data;
 using Ecommerce.WebAPI.src.ExternalService;
 using Ecommerce.WebAPI.src.Middleware;
@@ -11,6 +12,9 @@ using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+
+// add automapper dependency injection
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 // Add all controllers
 builder.Services.AddControllers();
