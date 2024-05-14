@@ -1,22 +1,23 @@
 using AutoMapper;
 using Ecommerce.Core.src.Common;
+using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.Interfaces;
 
 namespace Ecommerce.Service.src.Services
 {
     public class BaseService<TReadDTO, TCreateDTO, TUpdateDTO, TEntity, QueryOptions> : IBaseService<TReadDTO, TCreateDTO, TUpdateDTO, QueryOptions>
-       where TEntity : class
+       where TEntity : BaseEntity, new()
     {
-        private readonly IBaseRepository<TEntity, QueryOptions> _repository;
-        private readonly IMapper _mapper;
+        protected readonly IBaseRepository<TEntity, QueryOptions> _repository;
+        protected readonly IMapper _mapper;
 
         public BaseService(IBaseRepository<TEntity, QueryOptions> repository, IMapper mapper)
         {
             _repository = repository;
             _mapper = mapper;
         }
-        public async Task<TReadDTO> CreateOneAsync(TCreateDTO createDto)
+        public virtual async Task<TReadDTO> CreateOneAsync(TCreateDTO createDto)
         {
             var entity = _mapper.Map<TEntity>(createDto);
             if (await _repository.ExistsAsync(entity))
@@ -27,7 +28,7 @@ namespace Ecommerce.Service.src.Services
             return _mapper.Map<TReadDTO>(entity);
         }
 
-        public async Task<bool> DeleteOneAsync(Guid id)
+        public virtual async Task<bool> DeleteOneAsync(Guid id)
         {
             if (!await _repository.DeleteAsync(id))
             {
@@ -36,13 +37,13 @@ namespace Ecommerce.Service.src.Services
             return true;
         }
 
-        public async Task<IEnumerable<TReadDTO>> GetAllAsync(QueryOptions options)
+        public virtual async Task<IEnumerable<TReadDTO>> GetAllAsync(QueryOptions options)
         {
             var entities = await _repository.GetAllAsync(options);
             return _mapper.Map<IEnumerable<TReadDTO>>(entities);
         }
 
-        public async Task<TReadDTO> GetOneByIdAsync(Guid id)
+        public virtual async Task<TReadDTO> GetOneByIdAsync(Guid id)
         {
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
@@ -52,7 +53,7 @@ namespace Ecommerce.Service.src.Services
             return _mapper.Map<TReadDTO>(entity);
         }
 
-        public async Task<TReadDTO> UpdateOneAsync(Guid id, TUpdateDTO updateDto)
+        public virtual async Task<TReadDTO> UpdateOneAsync(Guid id, TUpdateDTO updateDto)
         {
             var existingEntity = await _repository.GetByIdAsync(id) ?? throw AppException.NotFound();
             var updatedEntity = _mapper.Map(updateDto, existingEntity);
