@@ -4,7 +4,6 @@ using Ecommerce.WebAPI.src.Data;
 using Ecommerce.WebAPI.src.ExternalService;
 using Ecommerce.WebAPI.src.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -71,7 +70,6 @@ builder.Services.AddCors(options =>
 });
 
 // service registration -> automatically create all instances of dependencies
-builder.Services.AddScoped<ExceptionMiddleware>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<PasswordService>();
 
