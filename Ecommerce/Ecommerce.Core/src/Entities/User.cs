@@ -24,7 +24,7 @@ namespace Ecommerce.Core.src.Entities
 
         public User() { }
 
-        public User(string name, string email, string password, string avatar, UserRole role, string addressLine1, string addressLine2, int postCode, string city, string country)
+        public User(string name, string email, string password, string avatar, UserRole role)
         {
             Id = Guid.NewGuid();
             Name = Guard.Against.NullOrWhiteSpace(name, nameof(Name));
@@ -32,11 +32,6 @@ namespace Ecommerce.Core.src.Entities
             Password = password;
             Avatar = Guard.Against.InvalidInput(avatar, nameof(avatar), uri => Uri.IsWellFormedUriString(uri, UriKind.Absolute), "Image URL must be a valid URL.");
             Role = Guard.Against.Null(role, nameof(Role));
-            AddressLine1 = Guard.Against.NullOrWhiteSpace(addressLine1, nameof(AddressLine1));
-            AddressLine2 = Guard.Against.NullOrWhiteSpace(addressLine2, nameof(AddressLine2));
-            PostCode = postCode;
-            City = Guard.Against.NullOrWhiteSpace(city, nameof(City));
-            Country = Guard.Against.NullOrWhiteSpace(country, nameof(Country));
         }
     }
 }

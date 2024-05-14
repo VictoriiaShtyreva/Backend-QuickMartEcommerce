@@ -98,11 +98,6 @@ namespace Ecommerce.WebAPI.src.Data
                     Password = "alice@123",
                     Avatar = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
                     Role = UserRole.Admin,
-                    AddressLine1 = "123 Anywhere St",
-                    AddressLine2 = "Apt 2",
-                    PostCode = 12345,
-                    City = "Anytown",
-                    Country = "USA"
                 },
                 new User
                 {
@@ -111,12 +106,7 @@ namespace Ecommerce.WebAPI.src.Data
                     Email = "bob@example.com",
                     Password = "bob@123",
                     Avatar = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
-                    Role = UserRole.Customer,
-                    AddressLine1 = "456 Somewhere Ave",
-                    AddressLine2 = "Suite 300",
-                    PostCode = 54321,
-                    City = "Othertown",
-                    Country = "USA"
+                    Role = UserRole.Customer
                 },
                 new User
                 {
@@ -125,12 +115,7 @@ namespace Ecommerce.WebAPI.src.Data
                     Email = "carol@example.com",
                     Password = "carol@123",
                     Avatar = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
-                    Role = UserRole.Customer,
-                    AddressLine1 = "789 Nowhere Blvd",
-                    AddressLine2 = "Box 5",
-                    PostCode = 98765,
-                    City = "Lostcity",
-                    Country = "USA"
+                    Role = UserRole.Customer
                 }
             };
             return users;
