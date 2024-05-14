@@ -1,9 +1,10 @@
 using Ecommerce.Core.src.Entities;
+using Ecommerce.Service.src.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
 namespace Ecommerce.WebAPI.src.ExternalService
 {
-    public class PasswordService
+    public class PasswordService : IPasswordService
     {
         private readonly IPasswordHasher<User> _passwordHasher;
         public PasswordService(IPasswordHasher<User> passwordHasher)

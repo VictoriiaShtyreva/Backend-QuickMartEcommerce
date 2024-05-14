@@ -6,5 +6,6 @@ namespace Ecommerce.Service.src.Interfaces
     {
         public string GetToken(User user);
         public Guid VerifyToken(string token);
+        Task<string> InvalidateTokenAsync();
     }
 }

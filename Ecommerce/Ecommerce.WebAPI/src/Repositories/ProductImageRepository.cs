@@ -32,6 +32,11 @@ namespace Ecommerce.WebAPI.src.Repositories
             return true;
         }
 
+        public async Task<bool> ExistsAsync(ProductImage entity)
+        {
+            return await _productImages.AnyAsync(e => e.Id == entity.Id);
+        }
+
         public async Task<IEnumerable<ProductImage>> GetAllAsync(QueryOptions options)
         {
             return await _productImages.ToListAsync();

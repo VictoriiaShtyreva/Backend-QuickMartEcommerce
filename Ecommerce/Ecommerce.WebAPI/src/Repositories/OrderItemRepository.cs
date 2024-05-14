@@ -77,5 +77,10 @@ namespace Ecommerce.WebAPI.src.Repositories
             await _context.SaveChangesAsync();
             return entity;
         }
+
+        public async Task<bool> ExistsAsync(OrderItem entity)
+        {
+            return await _orderItems.AnyAsync(e => e.Id == entity.Id);
+        }
     }
 }

@@ -112,5 +112,10 @@ namespace Ecommerce.WebAPI.src.Repositories
             .Include(p => p.Images)
             .SingleOrDefaultAsync(p => p.Id == entity.Id);
         }
+
+        public async Task<bool> ExistsAsync(Product entity)
+        {
+            return await _products.AnyAsync(e => e.Id == entity.Id);
+        }
     }
 }
