@@ -8,7 +8,7 @@ namespace Ecommerce.Service.src.Interfaces
     {
         Task<IEnumerable<OrderReadDto>> GetOrdersByUserIdAsync(Guid userId);
         Task<bool> CancelOrderAsync(Guid orderId);
-        Task<OrderReadDto> CreateOrderFromCartAsync(Guid userId);
+        Task<OrderReadDto> CreateOrderFromCartAsync(OrderCreateDto orderCreateDto);
         Task<bool> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus);
     }
 }

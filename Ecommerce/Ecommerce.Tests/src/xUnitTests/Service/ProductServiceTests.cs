@@ -86,7 +86,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             }
             else
             {
-                var exceptionInstance = (Exception)Activator.CreateInstance(exceptionType, new object[] { httpStatusCode, "Simulated database error" })!;
+                var exceptionInstance = (Exception)Activator.CreateInstance(exceptionType, new object[] { httpStatusCode!, "Simulated database error" })!;
                 _mockProductRepository.Setup(r => r.DeleteAsync(productId)).ThrowsAsync(exceptionInstance);
             }
 
