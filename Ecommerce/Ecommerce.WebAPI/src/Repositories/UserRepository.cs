@@ -6,7 +6,7 @@ using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.WebAPI.src.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Ecommerce.WebAPI.src.Repo
+namespace Ecommerce.WebAPI.src.Repositories
 {
     public class UserRepository : IUserRepository
     {

@@ -1,4 +1,5 @@
 using System.Text;
+using CloudinaryDotNet;
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Entities.CartAggregate;
@@ -74,7 +75,6 @@ options =>
 options.UseNpgsql(dataSource)
         .UseSnakeCaseNamingConvention()
         .UseLazyLoadingProxies()
-        .EnableSensitiveDataLogging()
         .EnableDetailedErrors()
         .AddInterceptors(new TimeStampInteceptor())
 );
@@ -94,8 +94,8 @@ builder.Services.AddCors(options =>
 
 // service registration -> automatically create all instances of dependencies
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
-builder.Services.AddScoped<PasswordService>();
-builder.Services.AddScoped<IUserRepository, IUserRepository>();
+builder.Services.AddScoped<IPasswordService, PasswordService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 // Auth
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -128,7 +128,14 @@ builder.Services.AddScoped<IBaseRepository<Address, QueryOptions>, AddressReposi
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 //Cloudinary
 builder.Services.AddScoped<ICloudinaryImageService, CloudinaryImageService>();
-
+// Configure Cloudinary
+var cloudinaryAccount = new Account(
+    builder.Configuration["CloudinarySettings:CloudName"],
+    builder.Configuration["CloudinarySettings:ApiKey"],
+    builder.Configuration["CloudinarySettings:ApiSecret"]
+);
+var cloudinary = new Cloudinary(cloudinaryAccount);
+builder.Services.AddSingleton(cloudinary);
 
 // Add authentication instructions
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
