@@ -25,6 +25,9 @@ builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true
 // add automapper dependency injection
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
+//Cloudinary
+builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+
 // Add all controllers
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -82,6 +85,7 @@ builder.Services.AddCors(options =>
         });
 });
 
+
 // service registration -> automatically create all instances of dependencies
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<PasswordService>();
@@ -116,6 +120,9 @@ builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped<IBaseRepository<Address, QueryOptions>, AddressRepository>();
 //UnitOfWork
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+//Cloudinary
+builder.Services.AddScoped<ICloudinaryImageService, CloudinaryImageService>();
+
 
 // Add authentication instructions
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -145,7 +152,7 @@ using (var scope = app.Services.CreateScope())
     await cartRepository.EnsureCartsForAllUsers();
 }
 
-app.UseCors();
+app.UseCors("AllowAllOrigins");
 
 app.UseSwagger();
 app.UseSwaggerUI();
