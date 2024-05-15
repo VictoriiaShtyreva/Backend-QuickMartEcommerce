@@ -49,10 +49,16 @@ namespace Ecommerce.Service.src.Shared
             CreateMap<ProductImageUpdateDto, ProductImage>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             // Order mappings
-            CreateMap<Order, OrderReadDto>();
-            CreateMap<OrderCreateDto, Order>();
-            // Only map non-null fields to allow partial updates
-            CreateMap<OrderUpdateDto, Order>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<Order, OrderReadDto>()
+             .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.OrderItems!.Sum(i => i.Price * i.Quantity)))
+             .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems))
+             .ForMember(dest => dest.ShippingAddress, opt => opt.MapFrom(src => src.ShippingAddress));
+            CreateMap<OrderCreateDto, Order>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForPath(dest => dest.ShippingAddress, opt => opt.Ignore());
+            CreateMap<OrderUpdateDto, Order>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             // Address mappings
             CreateMap<Address, AddressDto>();
@@ -61,8 +67,9 @@ namespace Ecommerce.Service.src.Shared
             // OrderItem mappings
             CreateMap<OrderItem, OrderItemReadDto>();
             CreateMap<OrderItemCreateDto, OrderItem>();
-            // Only map non-null fields to allow partial updates
-            CreateMap<OrderItemUpdateDto, OrderItem>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+            CreateMap<OrderItemUpdateDto, OrderItem>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
 
 
             // Review mappings

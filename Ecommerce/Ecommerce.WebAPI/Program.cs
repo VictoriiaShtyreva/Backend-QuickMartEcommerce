@@ -8,6 +8,7 @@ using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.Interfaces;
 using Ecommerce.Service.src.Services;
 using Ecommerce.Service.src.Shared;
+using Ecommerce.WebAPI.src.AuthorizationPolicy;
 using Ecommerce.WebAPI.src.Data;
 using Ecommerce.WebAPI.src.ExternalService;
 using Ecommerce.WebAPI.src.Middleware;
@@ -27,6 +28,9 @@ builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 //Cloudinary
 builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection("CloudinarySettings"));
+
+//Cashing
+builder.Services.AddMemoryCache();
 
 // Add all controllers
 builder.Services.AddControllers();
@@ -68,9 +72,11 @@ builder.Services.AddDbContext<AppDbContext>
 (
 options =>
 options.UseNpgsql(dataSource)
-.UseSnakeCaseNamingConvention()
-.UseLazyLoadingProxies()
-.AddInterceptors(new TimeStampInteceptor())
+        .UseSnakeCaseNamingConvention()
+        .UseLazyLoadingProxies()
+        .EnableSensitiveDataLogging()
+        .EnableDetailedErrors()
+        .AddInterceptors(new TimeStampInteceptor())
 );
 
 // CORS
@@ -141,6 +147,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     }
 );
 
+// Add authorization instructions
+builder.Services.AddAuthorizationBuilder()
+     // Add authorization instructions
+     .AddPolicy("AdminOrOwnerAccount", policy => policy.Requirements.Add(new AdminOrOwnerAccountRequirement()))
+     // Add authorization instructions
+     .AddPolicy("AdminOrOwnerOrder", policy => policy.Requirements.Add(new AdminOrOwnerOrderRequirement()))
+     // Add authorization instructions
+     .AddPolicy("AdminOrOwnerReview", policy => policy.Requirements.Add(new AdminOrOwnerReviewRequirement()));
 
 var app = builder.Build();
 
