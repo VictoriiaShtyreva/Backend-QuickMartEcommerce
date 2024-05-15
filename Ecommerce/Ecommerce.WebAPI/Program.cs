@@ -1,10 +1,10 @@
 using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.ValueObjects;
+using Ecommerce.Service.src.Shared;
 using Ecommerce.WebAPI.src.Data;
 using Ecommerce.WebAPI.src.ExternalService;
 using Ecommerce.WebAPI.src.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -12,6 +12,9 @@ using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
+
+// add automapper dependency injection
+builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 // Add all controllers
 builder.Services.AddControllers();
@@ -71,7 +74,6 @@ builder.Services.AddCors(options =>
 });
 
 // service registration -> automatically create all instances of dependencies
-builder.Services.AddScoped<ExceptionMiddleware>();
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<PasswordService>();
 

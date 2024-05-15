@@ -2,7 +2,7 @@ using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Entities.OrderAggregate;
 using Ecommerce.Core.src.ValueObjects;
-using Ecommerce.WebAPI.src.ExternalService;
+using Ecommerce.Service.src.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.WebAPI.src.Data
@@ -10,7 +10,7 @@ namespace Ecommerce.WebAPI.src.Data
     public class AppDbContext : DbContext
     {
         private readonly IConfiguration _config;
-        private readonly PasswordService _passwordService;
+        private readonly IPasswordService _passwordService;
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Review> Reviews { get; set; } = null!;
@@ -23,7 +23,7 @@ namespace Ecommerce.WebAPI.src.Data
         public DbSet<ProductImage> ProductImages { get; set; } = null!;
         public DbSet<ProductSnapshot> ProductSnapshots { get; set; } = null!;
 
-        public AppDbContext(DbContextOptions<AppDbContext> options, IConfiguration config, PasswordService passwordService) : base(options)
+        public AppDbContext(DbContextOptions<AppDbContext> options, IConfiguration config, IPasswordService passwordService) : base(options)
         {
             _config = config;
             _passwordService = passwordService;

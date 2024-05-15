@@ -32,6 +32,11 @@ namespace Ecommerce.WebAPI.src.Repositories
             return true;
         }
 
+        public async Task<bool> ExistsAsync(Address entity)
+        {
+            return await _addresses.AnyAsync(e => e.Id == entity.Id);
+        }
+
         public async Task<IEnumerable<Address>> GetAllAsync(QueryOptions options)
         {
             return await _addresses.ToListAsync();

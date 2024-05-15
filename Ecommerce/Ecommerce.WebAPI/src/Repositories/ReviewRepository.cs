@@ -106,5 +106,10 @@ namespace Ecommerce.WebAPI.src.Repositories
             await _context.SaveChangesAsync();
             return existingReview;
         }
+
+        public async Task<bool> ExistsAsync(Review entity)
+        {
+            return await _reviews.AnyAsync(e => e.Id == entity.Id);
+        }
     }
 }

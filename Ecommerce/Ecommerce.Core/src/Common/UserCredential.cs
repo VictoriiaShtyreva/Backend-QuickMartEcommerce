@@ -10,8 +10,10 @@ namespace Ecommerce.Core.src.Common
 
         public UserCredential(string email, string password)
         {
-            Email = Guard.Against.InvalidEmail(email, nameof(Email));
-            Password = Guard.Against.NullOrEmpty(password, nameof(Password));
+            Guard.Against.InvalidEmail(email, nameof(Email));
+            Guard.Against.NullOrEmpty(password, nameof(Password));
+            Email = email;
+            Password = password;
         }
     }
 }

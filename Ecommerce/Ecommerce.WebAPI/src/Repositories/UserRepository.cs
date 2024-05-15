@@ -118,5 +118,10 @@ namespace Ecommerce.WebAPI.src.Repo
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> ExistsAsync(User entity)
+        {
+            return await _users.AnyAsync(e => e.Id == entity.Id);
+        }
     }
 }

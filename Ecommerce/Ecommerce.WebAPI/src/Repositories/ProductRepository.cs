@@ -83,7 +83,7 @@ namespace Ecommerce.WebAPI.src.Repositories
             var topProductIds = await _context.OrderItems
                 .Include(oi => oi.Order)
                 .Where(oi => oi.Order!.Status == OrderStatus.Completed)
-                .GroupBy(oi => oi.ProductSnapshot.ProductId)
+                .GroupBy(oi => oi.ProductSnapshot!.ProductId)
                 .Select(g => new
                 {
                     ProductId = g.Key,
@@ -111,6 +111,11 @@ namespace Ecommerce.WebAPI.src.Repositories
             .Include(p => p.Category)
             .Include(p => p.Images)
             .SingleOrDefaultAsync(p => p.Id == entity.Id);
+        }
+
+        public async Task<bool> ExistsAsync(Product entity)
+        {
+            return await _products.AnyAsync(e => e.Id == entity.Id);
         }
     }
 }

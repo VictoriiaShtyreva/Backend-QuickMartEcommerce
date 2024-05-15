@@ -84,5 +84,10 @@ namespace Ecommerce.WebAPI.src.Repositories
             await _context.SaveChangesAsync();
             return category;
         }
+
+        public async Task<bool> ExistsAsync(Category entity)
+        {
+            return await _categories.AnyAsync(e => e.Id == entity.Id);
+        }
     }
 }

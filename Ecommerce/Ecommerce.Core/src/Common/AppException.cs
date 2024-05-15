@@ -24,10 +24,6 @@ namespace Ecommerce.Core.src.Common
         public static AppException Unauthorized(string message = "Unauthorized") =>
             new AppException(HttpStatusCode.Unauthorized, message);
 
-        // 500 Internal Server Error
-        public static AppException InternalServerError(string message = "Internal Server Error") =>
-            new AppException(HttpStatusCode.InternalServerError, message);
-
         // 400 Bad Request
         public static AppException InvalidLoginCredentialsException(string message = "Invalid Login Credentials") =>
             new AppException(HttpStatusCode.BadRequest, message);
@@ -37,20 +33,8 @@ namespace Ecommerce.Core.src.Common
             new AppException(HttpStatusCode.BadRequest, message);
 
         // 409 Conflict
-        public static AppException DuplicateEmailException(string message = "Email is already in use, please choose another email") =>
+        public static AppException DuplicateException(string message = "Duplicate entry detected.") =>
             new AppException(HttpStatusCode.Conflict, message);
-
-        // 409 Conflict
-        public static AppException DuplicateProductTitleException(string message = "Product title is already in use, please choose another title") =>
-            new AppException(HttpStatusCode.Conflict, message);
-
-        // 409 Conflict
-        public static AppException DuplicateCategoryNameException(string message = "Category name is already in use, please choose another name") =>
-            new AppException(HttpStatusCode.Conflict, message);
-
-        // 400 Bad Request
-        public static AppException ReviewRatingException(string message = "Rating must be between 1 and 5") =>
-            new AppException(HttpStatusCode.BadRequest, message);
 
         // 400 Bad Request
         public static AppException InvalidInputException(string message = "Invalid input") =>
