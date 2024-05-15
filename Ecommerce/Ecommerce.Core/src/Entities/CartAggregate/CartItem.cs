@@ -16,7 +16,7 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
         {
             Guard.Against.Default(productId, nameof(productId));
             Guard.Against.Default(cartId, nameof(cartId));
-            Guard.Against.NegativeOrZero(quantity, nameof(quantity));
+            Guard.Against.Negative(quantity, nameof(quantity));
 
             Id = Guid.NewGuid();
             CartId = cartId;
