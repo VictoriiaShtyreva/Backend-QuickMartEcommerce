@@ -1,12 +1,21 @@
+using System.Text;
+using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
+using Ecommerce.Core.src.Entities.CartAggregate;
+using Ecommerce.Core.src.Entities.OrderAggregate;
+using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
+using Ecommerce.Service.src.Interfaces;
+using Ecommerce.Service.src.Services;
 using Ecommerce.Service.src.Shared;
 using Ecommerce.WebAPI.src.Data;
 using Ecommerce.WebAPI.src.ExternalService;
 using Ecommerce.WebAPI.src.Middleware;
+using Ecommerce.WebAPI.src.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 
@@ -76,8 +85,65 @@ builder.Services.AddCors(options =>
 // service registration -> automatically create all instances of dependencies
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<PasswordService>();
+builder.Services.AddScoped<IUserRepository, IUserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+// Auth
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+// Category
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+// Review
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+// Product
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+// ProductImage
+builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+builder.Services.AddScoped<IProductImageService, ProductImageService>();
+// Cart and CartItems
+builder.Services.AddScoped<ICartItemService, CartItemService>();
+builder.Services.AddScoped<IBaseRepository<CartItem, QueryOptions>, CartItemRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<ICartService, CartService>();
+//Order and OrderItems
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IBaseRepository<OrderItem, QueryOptions>, OrderItemRepository>();
+builder.Services.AddScoped<IOrderItemService, OrderItemService>();
+// Address
+builder.Services.AddScoped<IBaseRepository<Address, QueryOptions>, AddressRepository>();
+//UnitOfWork
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Add authentication instructions
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+.AddJwtBearer(
+    options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Secrets:JwtKey"]!)),
+            ValidateIssuer = true,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Secrets:Issuer"]
+        };
+    }
+);
+
 
 var app = builder.Build();
+
+// Ensure each user has a cart
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var cartRepository = services.GetRequiredService<ICartRepository>();
+    await cartRepository.EnsureCartsForAllUsers();
+}
 
 app.UseCors();
 

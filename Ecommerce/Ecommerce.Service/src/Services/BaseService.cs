@@ -75,7 +75,7 @@ namespace Ecommerce.Service.src.Services
             {
                 throw AppException.DuplicateException();
             }
-            var result = await _repository.UpdateAsync(updatedEntity) ?? throw AppException.BadRequest();
+            var result = await _repository.UpdateAsync(updatedEntity);
             return _mapper.Map<TReadDTO>(result);
         }
     }

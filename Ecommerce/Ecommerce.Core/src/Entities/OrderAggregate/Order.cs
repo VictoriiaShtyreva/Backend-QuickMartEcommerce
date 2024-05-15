@@ -15,12 +15,11 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
         public virtual Address? ShippingAddress { get; set; }
 
         public Order() { }
-        public Order(Guid userId, Address shippingAddress)
+        public Order(Guid userId)
         {
             Guard.Against.Default(userId, nameof(userId));
             Id = Guid.NewGuid();
             UserId = userId;
-            ShippingAddress = shippingAddress;
             _orderItems = new HashSet<OrderItem>(new OrderItemComparer());
         }
 

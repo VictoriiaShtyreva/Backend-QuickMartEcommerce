@@ -40,7 +40,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         public static IEnumerable<object[]> LogInAsyncData =>
     new List<object[]>
     {
-        new object[] { "user@example.com", "correctpassword", PasswordVerificationResult.Success, true, null },
+        new object[] { "user@example.com", "correctpassword", PasswordVerificationResult.Success, true, null! },
         new object[] { "user@example.com", "wrongpassword", PasswordVerificationResult.Failed, false, typeof(AppException) },
         new object[] { "notfound@example.com", "any", PasswordVerificationResult.Failed, false, typeof(AppException) }
     };

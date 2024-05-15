@@ -64,6 +64,16 @@ namespace Ecommerce.WebAPI.src.Middleware
                     }));
                     logger.LogWarning($"Bad request: {argEx.Message}", argEx);
                     break;
+                case ApplicationException appEx:
+                    // Handle general application exceptions
+                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(new ErrorDetails
+                    {
+                        StatusCode = context.Response.StatusCode,
+                        Message = appEx.Message
+                    }));
+                    logger.LogWarning($"Application error: {appEx.Message}", appEx);
+                    break;
                 case InvalidOperationException opEx:
                     // Unprocessable Entity for invalid operations
                     context.Response.StatusCode = (int)HttpStatusCode.UnprocessableEntity;

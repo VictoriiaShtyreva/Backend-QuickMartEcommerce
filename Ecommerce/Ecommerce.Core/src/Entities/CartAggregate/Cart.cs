@@ -1,4 +1,3 @@
-using System.Dynamic;
 using Ardalis.GuardClauses;
 
 namespace Ecommerce.Core.src.Entities.CartAggregate
