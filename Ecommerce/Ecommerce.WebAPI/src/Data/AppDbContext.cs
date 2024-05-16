@@ -3,6 +3,7 @@ using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Entities.OrderAggregate;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.Interfaces;
+using Ecommerce.WebAPI.src.ValueConversion;
 using Microsoft.EntityFrameworkCore;
 
 namespace Ecommerce.WebAPI.src.Data
@@ -146,6 +147,9 @@ namespace Ecommerce.WebAPI.src.Data
                 entity.Property(oi => oi.UpdatedAt).HasDefaultValueSql("now()");
                 entity.Property(oi => oi.Price).HasPrecision(18, 2);
                 entity.HasOne(oi => oi.Order).WithMany(o => o.OrderItems).HasForeignKey(oi => oi.OrderId).OnDelete(DeleteBehavior.Cascade);
+                entity.Property(oi => oi.ProductSnapshot)
+                      .HasConversion(new JsonValueConverter<ProductSnapshot>()!)
+                      .HasColumnType("json");
             });
             modelBuilder.Entity<OrderItem>().ToTable(oi => oi.HasCheckConstraint("order_items_updated_at_check", "updated_at >= created_at"));
             modelBuilder.Entity<OrderItem>().ToTable(oi => oi.HasCheckConstraint("order_items_price_check", "price > 0"));
@@ -197,6 +201,21 @@ namespace Ecommerce.WebAPI.src.Data
 
             var carts = users.Select(u => new Cart { Id = Guid.NewGuid(), UserId = u.Id }).ToList();
             modelBuilder.Entity<Cart>().HasData(carts);
+
+            var addresses = SeedingData.GetAddresses();
+            modelBuilder.Entity<Address>().HasData(addresses);
+
+            var orders = SeedingData.GetOrders(users, addresses);
+            modelBuilder.Entity<Order>().HasData(orders);
+
+            var orderItems = SeedingData.GetOrderItems(orders, products);
+            modelBuilder.Entity<OrderItem>().HasData(orderItems);
+
+            var cartItems = SeedingData.GetCartItems(carts, products);
+            modelBuilder.Entity<CartItem>().HasData(cartItems);
+
+            var reviews = SeedingData.GetReviews(users, products);
+            modelBuilder.Entity<Review>().HasData(reviews);
         }
     }
 }

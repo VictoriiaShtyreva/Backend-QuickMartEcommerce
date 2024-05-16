@@ -12,11 +12,14 @@ namespace Ecommerce.Service.src.Services
     {
         private IProductRepository _productRepository;
         private IProductImageRepository _productImageRepository;
+        private readonly ICloudinaryImageService _imageService;
 
-        public ProductService(IProductRepository productRepository, IMapper mapper, IProductImageRepository productImageRepository, IMemoryCache cache) : base(productRepository, mapper, cache)
+        public ProductService(IProductRepository productRepository, IMapper mapper, IProductImageRepository productImageRepository, IMemoryCache cache, ICloudinaryImageService imageService) : base(productRepository, mapper, cache)
         {
             _productRepository = productRepository;
             _productImageRepository = productImageRepository;
+            _imageService = imageService;
+
         }
 
         public async Task<IEnumerable<ProductReadDto>> GetMostPurchased(int topNumber)
@@ -39,9 +42,10 @@ namespace Ecommerce.Service.src.Services
 
             if (createDto.Images != null)
             {
-                foreach (var imageUrl in createDto.Images)
+                foreach (var imageFile in createDto.Images)
                 {
-                    var image = new ProductImage(productId: product.Id, url: imageUrl);
+                    var uploadResult = await _imageService.UploadImageAsync(imageFile);
+                    var image = new ProductImage(productId: product.Id, url: uploadResult.SecureUrl.ToString());
                     await _productImageRepository.CreateAsync(image);
                 }
             }
@@ -55,33 +59,27 @@ namespace Ecommerce.Service.src.Services
             // Update product information if provided in the update DTO
             if (!string.IsNullOrEmpty(updateDto.Title))
             {
-
                 product.Title = updateDto.Title;
             }
-
             if (updateDto.Price.HasValue)
             {
-
                 product.Price = updateDto.Price.Value;
             }
-
             if (updateDto.CategoryId != null)
             {
-
                 product.CategoryId = updateDto.CategoryId.Value;
             }
-
             if (updateDto.Inventory.HasValue)
             {
                 product.Inventory = updateDto.Inventory.Value;
             }
-
             // Update product images
             if (updateDto.Images != null && updateDto.Images.Any())
             {
-                foreach (var imageURL in updateDto.Images)
+                foreach (var imageFile in updateDto.Images)
                 {
-                    var newImage = new ProductImage(productId: product.Id, url: imageURL);
+                    var uploadResult = await _imageService.UploadImageAsync(imageFile);
+                    var newImage = new ProductImage(productId: product.Id, url: uploadResult.SecureUrl.ToString());
                     await _productImageRepository.CreateAsync(newImage);
                 }
             }

@@ -5,6 +5,7 @@ using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
+using Ecommerce.Service.src.Interfaces;
 using Ecommerce.Service.src.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
@@ -18,10 +19,11 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         private readonly Mock<IProductImageRepository> _mockProductImageRepository = new Mock<IProductImageRepository>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
         private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
+        private readonly Mock<ICloudinaryImageService> _mockCloudinaryImageService = new Mock<ICloudinaryImageService>();
 
         public ProductServiceTests()
         {
-            _productService = new ProductService(_mockProductRepository.Object, _mockMapper.Object, _mockProductImageRepository.Object, _mockCache.Object);
+            _productService = new ProductService(_mockProductRepository.Object, _mockMapper.Object, _mockProductImageRepository.Object, _mockCache.Object, _mockCloudinaryImageService.Object);
         }
 
         public static IEnumerable<object[]> UpdateProductDetailsData =>

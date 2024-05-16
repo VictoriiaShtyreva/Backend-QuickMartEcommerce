@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Ardalis.GuardClauses;
 using Ecommerce.Core.src.ValueObjects;
 
@@ -9,6 +10,8 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
         public int Quantity { get; set; }
         public decimal Price { get; set; }
         public virtual Order? Order { get; set; }
+
+        [Column(TypeName = "json")]
         public virtual ProductSnapshot? ProductSnapshot { get; set; }
 
         public OrderItem() { }
