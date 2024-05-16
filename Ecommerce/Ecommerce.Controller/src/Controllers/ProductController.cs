@@ -12,18 +12,16 @@ namespace Ecommerce.Controller.src.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
-        private readonly IAuthorizationService _authorizationService;
-        public ProductController(IProductService productService, IAuthorizationService authorizationService)
+        public ProductController(IProductService productService)
         {
             _productService = productService;
-            _authorizationService = authorizationService;
         }
 
         [HttpGet("{productId}")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ProductReadDto>> GetProductById([FromRoute] Guid productId)
+        public async Task<ActionResult<ProductReadDto>> GetProductByIdAsync([FromRoute] Guid productId)
         {
             var product = await _productService.GetOneByIdAsync(productId);
             return Ok(product);
@@ -32,7 +30,7 @@ namespace Ecommerce.Controller.src.Controllers
         [HttpGet]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetAllProducts([FromQuery] QueryOptions options)
+        public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetAllProductsAsync([FromQuery] QueryOptions options)
         {
             var products = await _productService.GetAllAsync(options);
             return Ok(products);
@@ -42,10 +40,10 @@ namespace Ecommerce.Controller.src.Controllers
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<ProductReadDto>> CreateProduct([FromForm] ProductCreateDto createDto)
+        public async Task<ActionResult<ProductReadDto>> CreateProductAsync([FromForm] ProductCreateDto createDto)
         {
             var product = await _productService.CreateOneAsync(createDto);
-            return CreatedAtAction(nameof(GetProductById), new { productId = product.Id }, product);
+            return CreatedAtAction(nameof(GetProductByIdAsync), new { productId = product.Id }, product);
         }
 
         [HttpPatch("{productId}")]
@@ -53,7 +51,7 @@ namespace Ecommerce.Controller.src.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<ProductReadDto>> UpdateProduct([FromRoute] Guid productId, [FromForm] ProductUpdateDto updateDto)
+        public async Task<ActionResult<ProductReadDto>> UpdateProductAsync([FromRoute] Guid productId, [FromForm] ProductUpdateDto updateDto)
         {
             if (!ModelState.IsValid)
             {
@@ -67,7 +65,7 @@ namespace Ecommerce.Controller.src.Controllers
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteProduct([FromRoute] Guid productId)
+        public async Task<IActionResult> DeleteProductAsync([FromRoute] Guid productId)
         {
             var result = await _productService.DeleteOneAsync(productId);
             return result ? Ok() : NotFound();
@@ -76,14 +74,10 @@ namespace Ecommerce.Controller.src.Controllers
         [HttpGet("most-purchased")]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetMostPurchasedProducts([FromQuery] int topNumber)
+        public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetMostPurchasedProductsAsync([FromQuery] int topNumber)
         {
             var products = await _productService.GetMostPurchased(topNumber);
             return Ok(products);
         }
-
-
-
-
     }
 }

@@ -55,6 +55,12 @@ namespace Ecommerce.Service.src.Services
             }
             if (updateDto.Avatar != null)
             {
+                if (!string.IsNullOrEmpty(existingUser.Avatar))
+                {
+                    // Extract public ID from the existing avatar URL to delete it
+                    var publicId = new Uri(existingUser.Avatar).Segments.Last().Split('.').First();
+                    await _imageService.DeleteImageAsync(publicId);
+                }
                 var uploadResult = await _imageService.UploadImageAsync(updateDto.Avatar);
                 existingUser.Avatar = uploadResult.SecureUrl.ToString();
             }

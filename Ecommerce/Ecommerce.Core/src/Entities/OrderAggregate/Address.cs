@@ -18,7 +18,7 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
             Id = Guid.NewGuid();
             AddressLine = Guard.Against.NullOrWhiteSpace(addressLine, nameof(addressLine), "Address line is required.");
             City = Guard.Against.NullOrWhiteSpace(city, nameof(city), "City is required.");
-            PostalCode = Guard.Against.NegativeOrZero(postalCode, nameof(postalCode), "Postal code must be a positive number.");
+            PostalCode = Guard.Against.Negative(postalCode, nameof(postalCode), "Postal code must be a positive number.");
             Country = Guard.Against.NullOrWhiteSpace(country, nameof(country), "Country is required.");
         }
     }

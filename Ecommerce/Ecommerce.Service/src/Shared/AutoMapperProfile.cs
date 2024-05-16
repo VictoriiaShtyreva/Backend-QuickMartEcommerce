@@ -55,7 +55,6 @@ namespace Ecommerce.Service.src.Shared
              .ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems))
              .ForMember(dest => dest.ShippingAddress, opt => opt.MapFrom(src => src.ShippingAddress));
             CreateMap<OrderCreateDto, Order>()
-                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForPath(dest => dest.ShippingAddress, opt => opt.Ignore());
             CreateMap<OrderUpdateDto, Order>()

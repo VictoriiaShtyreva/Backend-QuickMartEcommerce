@@ -10,6 +10,7 @@ namespace Ecommerce.WebAPI.src.AuthorizationPolicy
         public AdminOrOwnerOrderRequirement()
         {
         }
+
     }
 
     public class AdminOrOwnerOrderHandler : AuthorizationHandler<AdminOrOwnerAccountRequirement, OrderReadDto>

@@ -7,7 +7,7 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
     {
         public Guid UserId { get; set; }
         public Guid AddressId { get; set; }
-        public OrderStatus Status { get; set; } = OrderStatus.Processing;
+        public OrderStatus Status { get; set; } = OrderStatus.Pending;
         public decimal TotalPrice { get; set; } = 0;
         private readonly HashSet<OrderItem>? _orderItems;
         public virtual IReadOnlyCollection<OrderItem>? OrderItems => _orderItems;

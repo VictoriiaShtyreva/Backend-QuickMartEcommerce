@@ -110,7 +110,7 @@ namespace Ecommerce.WebAPI.src.Repositories
 
         public async Task<IEnumerable<Order>> GetOrderByUserIdAsync(Guid userId)
         {
-            var order = await _orders.Include(o => o.OrderItems!).ThenInclude(oi => oi.ProductSnapshot).Where(x => x.UserId == userId).ToListAsync();
+            var order = await _orders.Include(o => o.OrderItems!).Where(x => x.UserId == userId).ToListAsync();
             return order;
         }
 

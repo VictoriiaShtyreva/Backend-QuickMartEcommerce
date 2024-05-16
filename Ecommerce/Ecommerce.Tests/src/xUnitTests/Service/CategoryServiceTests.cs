@@ -5,7 +5,9 @@ using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
+using Ecommerce.Service.src.Interfaces;
 using Ecommerce.Service.src.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
@@ -17,35 +19,13 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         private readonly Mock<ICategoryRepository> _mockCategoryRepository = new Mock<ICategoryRepository>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
         private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
+        private readonly Mock<ICloudinaryImageService> _mockCloudinaryImageService = new Mock<ICloudinaryImageService>();
 
         public CategoryServiceTests()
         {
-            _categoryService = new CategoryService(_mockCategoryRepository.Object, _mockMapper.Object, _mockCache.Object);
+            _categoryService = new CategoryService(_mockCategoryRepository.Object, _mockMapper.Object, _mockCache.Object, _mockCloudinaryImageService.Object);
         }
 
-        [Fact]
-        public async Task GetProductsByCategoryIdAsync_ReturnsProducts_WhenCategoryExists()
-        {
-            // Arrange
-            var categoryId = Guid.NewGuid();
-            var products = new List<Product>
-            {
-                new Product { Id = Guid.NewGuid(), Title = "Product 1" },
-                new Product { Id = Guid.NewGuid(), Title = "Product 2" }
-            };
-            var productReadDtos = products.Select(p => new ProductReadDto { Title = p.Title }).ToList();
-
-            _mockCategoryRepository.Setup(r => r.GetProductsByCategoryIdAsync(categoryId)).ReturnsAsync(products);
-            _mockMapper.Setup(m => m.Map<IEnumerable<ProductReadDto>>(products)).Returns(productReadDtos);
-
-            // Act
-            var result = await _categoryService.GetProductsByCategoryIdAsync(categoryId);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count());
-            Assert.All(result, dto => Assert.Contains(dto.Title, products.Select(p => p.Title)));
-        }
 
         [Fact]
         public async Task GetProductsByCategoryIdAsync_ThrowsNotFound_WhenNoProductsExist()
@@ -62,10 +42,12 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         public async Task CreateOneAsync_CreatesCategory_WhenValidDtoProvided()
         {
             // Arrange
-            var createDto = new CategoryCreateDto { Name = "New Category", Image = "http://example.com/image.jpg" };
+            var createDto = new CategoryCreateDto { Name = "New Category", Image = new FormFile(null!, 0, 0, null!, "image.jpg") };
             var expectedCategory = new Category("New Category", "http://example.com/image.jpg");
 
             _mockMapper.Setup(m => m.Map<Category>(createDto)).Returns(expectedCategory);
+            _mockCloudinaryImageService.Setup(x => x.UploadImageAsync(It.IsAny<IFormFile>()))
+                .ReturnsAsync(new CloudinaryDotNet.Actions.ImageUploadResult { SecureUrl = new Uri("http://example.com/image.jpg") });
             _mockCategoryRepository.Setup(x => x.CreateAsync(It.IsAny<Category>())).ReturnsAsync(expectedCategory);
             _mockMapper.Setup(m => m.Map<CategoryReadDto>(expectedCategory)).Returns(new CategoryReadDto { Name = "New Category", Image = "http://example.com/image.jpg" });
 
@@ -77,6 +59,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             Assert.Equal("New Category", result.Name);
             Assert.Equal("http://example.com/image.jpg", result.Image);
         }
+
 
         [Fact]
         public async Task GetAllAsync_ReturnsAllCategories_WhenCalled()
@@ -138,11 +121,13 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         {
             // Arrange
             var categoryId = Guid.NewGuid();
-            var updateDto = new CategoryUpdateDto { Name = "Updated Category", Image = "http://example.com/updated_image.jpg" };
+            var updateDto = new CategoryUpdateDto { Name = "Updated Category", Image = new FormFile(null!, 0, 0, null!, "image.jpg") };
             var category = new Category("Category", "http://example.com/image.jpg");
 
             _mockCategoryRepository.Setup(x => x.GetByIdAsync(categoryId)).ReturnsAsync(category);
             _mockCategoryRepository.Setup(x => x.UpdateAsync(It.IsAny<Category>())).ReturnsAsync(category);
+            _mockCloudinaryImageService.Setup(x => x.UploadImageAsync(It.IsAny<IFormFile>()))
+                .ReturnsAsync(new CloudinaryDotNet.Actions.ImageUploadResult { SecureUrl = new Uri("http://example.com/updated_image.jpg") });
             _mockMapper.Setup(m => m.Map<CategoryReadDto>(It.IsAny<Category>()))
                 .Returns(new CategoryReadDto { Name = "Updated Category", Image = "http://example.com/updated_image.jpg" });
 

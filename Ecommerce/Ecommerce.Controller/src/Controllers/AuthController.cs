@@ -25,7 +25,7 @@ namespace Ecommerce.Controller.src.Controllers
 
         [HttpPost("logout")]
         [Authorize]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> LogoutAsync()
         {
             // Retrieve token from the Authorization header
             var token = Request.Headers.Authorization.ToString().Replace("Bearer ", "");
@@ -41,7 +41,7 @@ namespace Ecommerce.Controller.src.Controllers
 
         [HttpGet("authenticate")]
         [Authorize]
-        public async Task<ActionResult<UserReadDto>> Authenticate([FromQuery] string token)
+        public async Task<ActionResult<UserReadDto>> AuthenticateAsync([FromQuery] string token)
         {
             if (string.IsNullOrEmpty(token))
             {

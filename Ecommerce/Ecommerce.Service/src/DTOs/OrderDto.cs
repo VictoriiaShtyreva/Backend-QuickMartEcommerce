@@ -18,9 +18,7 @@ namespace Ecommerce.Service.src.DTOs
     {
         public Guid UserId { get; set; }
         public List<OrderItemCreateDto> OrderItems { get; set; } = new List<OrderItemCreateDto>();
-        public OrderStatus Status { get; set; }
         public AddressDto? ShippingAddress { get; set; }
-        public decimal TotalPrice { get; set; }
     }
 
     public class OrderUpdateDto

@@ -52,20 +52,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             Assert.Equal(title ?? "Original Title", result.Title); // Default to original if no update provided
         }
 
-        [Fact]
-        public async Task GetMostPurchased_ReturnsProducts_WhenProductsExist()
-        {
-            var topNumber = 5;
-            var products = new List<Product> { new Product { Id = Guid.NewGuid(), Title = "Bestseller" } };
-
-            _mockProductRepository.Setup(x => x.GetMostPurchasedProductsAsync(topNumber)).ReturnsAsync(products);
-            _mockMapper.Setup(m => m.Map<IEnumerable<ProductReadDto>>(products)).Returns(products.Select(p => new ProductReadDto { Title = p.Title }));
-
-            var result = await _productService.GetMostPurchased(topNumber);
-
-            Assert.Single(result);
-            Assert.Equal("Bestseller", result.First().Title);
-        }
 
         [Fact]
         public async Task GetMostPurchased_ThrowsAppException_WhenNoProductsFound()

@@ -23,7 +23,7 @@ namespace Ecommerce.Controller.src.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<UserReadDto>> GetUserById([FromRoute] Guid userId)
+        public async Task<ActionResult<UserReadDto>> GetUserByIdAsync([FromRoute] Guid userId)
         {
             var user = await _userService.GetOneByIdAsync(userId);
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
@@ -53,17 +53,17 @@ namespace Ecommerce.Controller.src.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status201Created)]
-        public async Task<ActionResult<UserReadDto>> CreateUser([FromForm] UserCreateDto createDto)
+        public async Task<ActionResult<UserReadDto>> CreateUserAsync([FromForm] UserCreateDto createDto)
         {
             var user = await _userService.CreateOneAsync(createDto);
-            return CreatedAtAction(nameof(GetUserById), new { userId = user.Id }, user);
+            return CreatedAtAction(nameof(GetUserByIdAsync), new { userId = user.Id }, user);
         }
 
         [HttpPatch("{userId}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<UserReadDto>> UpdateUser([FromRoute] Guid userId, [FromForm] UserUpdateDto updateDto)
+        public async Task<ActionResult<UserReadDto>> UpdateUserAsync([FromRoute] Guid userId, [FromForm] UserUpdateDto updateDto)
         {
             var user = await _userService.GetOneByIdAsync(userId);
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
@@ -82,7 +82,7 @@ namespace Ecommerce.Controller.src.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> ResetPassword([FromRoute] Guid userId, [FromBody] string newPassword)
+        public async Task<IActionResult> ResetPasswordAsync([FromRoute] Guid userId, [FromBody] string newPassword)
         {
             var user = await _userService.GetOneByIdAsync(userId);
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
@@ -99,7 +99,7 @@ namespace Ecommerce.Controller.src.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> UpdatePassword([FromRoute] Guid userId, [FromBody] string newPassword)
+        public async Task<IActionResult> UpdatePasswordAsync([FromRoute] Guid userId, [FromBody] string newPassword)
         {
             var user = await _userService.GetOneByIdAsync(userId);
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
@@ -115,7 +115,7 @@ namespace Ecommerce.Controller.src.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<UserReadDto>> UpdateRole([FromRoute] Guid userId, [FromBody] UserRoleUpdateDto roleUpdateDto)
+        public async Task<ActionResult<UserReadDto>> UpdateRoleAsync([FromRoute] Guid userId, [FromBody] UserRoleUpdateDto roleUpdateDto)
         {
             var user = await _userService.GetOneByIdAsync(userId);
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
@@ -132,7 +132,7 @@ namespace Ecommerce.Controller.src.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IActionResult> DeleteUser([FromRoute] Guid userId)
+        public async Task<IActionResult> DeleteUserAsync([FromRoute] Guid userId)
         {
             var user = await _userService.GetOneByIdAsync(userId);
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
