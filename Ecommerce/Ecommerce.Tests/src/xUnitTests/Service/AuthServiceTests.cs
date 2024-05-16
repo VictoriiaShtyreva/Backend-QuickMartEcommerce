@@ -5,6 +5,8 @@ using Ecommerce.Service.src.Interfaces;
 using Ecommerce.Core.src.Entities;
 using Microsoft.AspNetCore.Identity;
 using Ecommerce.Core.src.Common;
+using AutoMapper;
+using Ecommerce.Service.src.DTOs;
 
 namespace Ecommerce.Tests.src.xUnitTests.Service
 {
@@ -14,18 +16,26 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         private readonly Mock<IUserRepository> _mockUserRepository = new Mock<IUserRepository>();
         private readonly Mock<ITokenService> _mockTokenService = new Mock<ITokenService>();
         private readonly Mock<IPasswordService> _mockPasswordService = new Mock<IPasswordService>();
+        private readonly IMapper _mapper;
 
         public AuthServiceTests()
         {
-            _authService = new AuthService(_mockUserRepository.Object, _mockTokenService.Object, _mockPasswordService.Object);
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile(new Ecommerce.Service.src.Shared.AutoMapperProfile());
+            });
+            _mapper = config.CreateMapper();
+
+            _authService = new AuthService(_mockUserRepository.Object, _mockTokenService.Object, _mockPasswordService.Object, _mapper);
         }
 
         [Fact]
-        public async Task AuthenticateUserAsync_ReturnsUser_WhenTokenIsValid()
+        public async Task AuthenticateUserAsync_ReturnsUserReadDto_WhenTokenIsValid()
         {
             // Arrange
             var userId = Guid.NewGuid();
             var user = new User { Id = userId, Email = "test@example.com" };
+            var userReadDto = new UserReadDto { Id = userId, Email = "test@example.com" };
 
             _mockTokenService.Setup(x => x.VerifyToken(It.IsAny<string>())).Returns(userId);
             _mockUserRepository.Setup(x => x.GetByIdAsync(userId)).ReturnsAsync(user);
@@ -34,16 +44,18 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             var result = await _authService.AuthenticateUserAsync("valid-token");
 
             // Assert
-            Assert.Equal(user, result);
+            Assert.NotNull(result);
+            Assert.Equal(userReadDto.Id, result.Id);
+            Assert.Equal(userReadDto.Email, result.Email);
         }
 
         public static IEnumerable<object[]> LogInAsyncData =>
-    new List<object[]>
-    {
-        new object[] { "user@example.com", "correctpassword", PasswordVerificationResult.Success, true, null! },
-        new object[] { "user@example.com", "wrongpassword", PasswordVerificationResult.Failed, false, typeof(AppException) },
-        new object[] { "notfound@example.com", "any", PasswordVerificationResult.Failed, false, typeof(AppException) }
-    };
+            new List<object[]>
+            {
+                new object[] { "user@example.com", "correctpassword", PasswordVerificationResult.Success, true, null! },
+                new object[] { "user@example.com", "wrongpassword", PasswordVerificationResult.Failed, false, typeof(AppException) },
+                new object[] { "notfound@example.com", "any", PasswordVerificationResult.Failed, false, typeof(AppException) }
+            };
 
         [Theory]
         [MemberData(nameof(LogInAsyncData))]
@@ -53,14 +65,14 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             var user = new User { Id = Guid.NewGuid(), Email = "test@test.com", Password = "hashedpassword" };
             var userCredential = new UserCredential(email, password);
 
-            if (shouldSucceed || exceptionType == typeof(AppException) && result == PasswordVerificationResult.Failed)
+            if (shouldSucceed || (exceptionType == typeof(AppException) && result == PasswordVerificationResult.Failed))
             {
                 _mockUserRepository.Setup(x => x.GetByEmailAsync(email)).ReturnsAsync(user);
                 _mockPasswordService.Setup(x => x.VerifyPassword(user, user.Password, password)).Returns(result);
             }
             else
             {
-                _mockUserRepository.Setup(x => x.GetByEmailAsync(email))!.ReturnsAsync(value: null);
+                _mockUserRepository.Setup(x => x.GetByEmailAsync(email)).ReturnsAsync((User)null!);
             }
 
             if (shouldSucceed)
