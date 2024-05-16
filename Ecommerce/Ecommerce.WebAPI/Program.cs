@@ -165,14 +165,6 @@ builder.Services.AddAuthorizationBuilder()
 
 var app = builder.Build();
 
-// Ensure each user has a cart
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var cartRepository = services.GetRequiredService<ICartRepository>();
-    await cartRepository.EnsureCartsForAllUsers();
-}
-
 app.UseCors("AllowAllOrigins");
 
 app.UseSwagger();

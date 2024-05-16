@@ -32,19 +32,6 @@ namespace Ecommerce.WebAPI.src.Repositories
             return true;
         }
 
-        public async Task EnsureCartsForAllUsers()
-        {
-            var usersWithoutCarts = await _context.Users
-               .Include(u => u.Cart)
-               .Where(u => u.Cart == null)
-               .ToListAsync();
-            foreach (var user in usersWithoutCarts)
-            {
-                _context.Carts.Add(new Cart { UserId = user.Id });
-            }
-            await _context.SaveChangesAsync();
-        }
-
         public async Task<IEnumerable<Cart>> GetAllAsync(QueryOptions options)
         {
             IQueryable<Cart> query = _carts.Include(c => c.CartItems!);

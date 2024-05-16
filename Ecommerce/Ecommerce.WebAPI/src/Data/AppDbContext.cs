@@ -193,6 +193,9 @@ namespace Ecommerce.WebAPI.src.Data
                 user.Password = _passwordService.HashPassword(user, user.Password!);
             }
             modelBuilder.Entity<User>().HasData(users);
+
+            var carts = users.Select(u => new Cart { Id = Guid.NewGuid(), UserId = u.Id }).ToList();
+            modelBuilder.Entity<Cart>().HasData(carts);
         }
     }
 }
