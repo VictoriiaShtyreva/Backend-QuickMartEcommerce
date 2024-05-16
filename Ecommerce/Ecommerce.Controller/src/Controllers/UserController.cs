@@ -26,7 +26,7 @@ namespace Ecommerce.Controller.src.Controllers
         public async Task<ActionResult<UserReadDto>> GetUserById([FromRoute] Guid userId)
         {
             var user = await _userService.GetOneByIdAsync(userId);
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccountRequirement");
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
             if (!authorizationResult.Succeeded)
             {
                 return Forbid();
@@ -50,39 +50,33 @@ namespace Ecommerce.Controller.src.Controllers
             }
         }
 
-        // [HttpPost]
-        // [AllowAnonymous]
-        // public async Task<ActionResult<UserReadDto>> CreateUser([FromBody] UserCreateDto createDto)
-        // {
-        //     if (createDto.Avatar != null)
-        //     {
-        //         var uploadResult = await _imageService.UploadImageAsync(createDto.Avatar);
-        //         if (uploadResult.Error != null)
-        //         {
-        //             return BadRequest(uploadResult.Error.Message);
-        //         }
-        //         createDto.Avatar = uploadResult.SecureUrl.AbsoluteUri.ToString();
-        //     }
-        //     var user = await _userService.CreateOneAsync(createDto);
-        //     return CreatedAtAction(nameof(GetUserById), new { userId = user.Id }, user);
-        // }
+        [HttpPost]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        public async Task<ActionResult<UserReadDto>> CreateUser([FromForm] UserCreateDto createDto)
+        {
+            var user = await _userService.CreateOneAsync(createDto);
+            return CreatedAtAction(nameof(GetUserById), new { userId = user.Id }, user);
+        }
 
         [HttpPatch("{userId}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<UserReadDto>> UpdateUser([FromRoute] Guid userId, UserUpdateDto updateDto)
+        public async Task<ActionResult<UserReadDto>> UpdateUser([FromRoute] Guid userId, [FromForm] UserUpdateDto updateDto)
         {
             var user = await _userService.GetOneByIdAsync(userId);
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccountRequirement");
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
             if (!authorizationResult.Succeeded)
             {
                 return Forbid();
             }
-            user = await _userService.UpdateOneAsync(userId, updateDto);
-            return Ok(user);
+
+            var updatedUser = await _userService.UpdateOneAsync(userId, updateDto);
+            return Ok(updatedUser);
         }
 
+        // for account recovery scenarios
         [HttpPatch("{userId}/reset-password")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -91,7 +85,7 @@ namespace Ecommerce.Controller.src.Controllers
         public async Task<IActionResult> ResetPassword([FromRoute] Guid userId, [FromBody] string newPassword)
         {
             var user = await _userService.GetOneByIdAsync(userId);
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccountRequirement");
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
             if (!authorizationResult.Succeeded)
             {
                 return Forbid();
@@ -108,7 +102,7 @@ namespace Ecommerce.Controller.src.Controllers
         public async Task<IActionResult> UpdatePassword([FromRoute] Guid userId, [FromBody] string newPassword)
         {
             var user = await _userService.GetOneByIdAsync(userId);
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccountRequirement");
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
             if (!authorizationResult.Succeeded)
             {
                 return Forbid();
@@ -124,7 +118,7 @@ namespace Ecommerce.Controller.src.Controllers
         public async Task<ActionResult<UserReadDto>> UpdateRole([FromRoute] Guid userId, [FromBody] UserRoleUpdateDto roleUpdateDto)
         {
             var user = await _userService.GetOneByIdAsync(userId);
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccountRequirement");
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
             if (!authorizationResult.Succeeded)
             {
                 return Forbid();
@@ -136,18 +130,18 @@ namespace Ecommerce.Controller.src.Controllers
 
         [HttpDelete("{userId}")]
         [Authorize]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> DeleteUser([FromRoute] Guid userId)
         {
             var user = await _userService.GetOneByIdAsync(userId);
-            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccountRequirement");
+            var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccount");
             if (!authorizationResult.Succeeded)
             {
                 return Forbid();
             }
             await _userService.DeleteOneAsync(userId);
-            return NoContent();
+            return Ok();
         }
     }
 

@@ -1,6 +1,7 @@
 using AutoMapper;
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
+using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
@@ -13,13 +14,15 @@ namespace Ecommerce.Service.src.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher<User> _passwordHasher;
+        private readonly ICloudinaryImageService _imageService;
         private readonly MemoryCacheEntryOptions _cacheOptions;
-        public UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher, IMemoryCache cache)
+        public UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher, IMemoryCache cache, ICloudinaryImageService imageService)
             : base(userRepository, mapper, cache)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
             _cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
+            _imageService = imageService;
 
         }
 
@@ -27,10 +30,38 @@ namespace Ecommerce.Service.src.Services
         public override async Task<UserReadDto> CreateOneAsync(UserCreateDto createDto)
         {
             var user = _mapper.Map<User>(createDto);
+            if (createDto.Avatar != null)
+            {
+                var uploadResult = await _imageService.UploadImageAsync(createDto.Avatar);
+                user.Avatar = uploadResult.SecureUrl.ToString();
+            }
             user.Password = _passwordHasher.HashPassword(user, createDto.Password);
+            user.Cart = new Cart();
             user = await _userRepository.CreateAsync(user);
             _cache.Remove($"GetAll-{typeof(User).Name}");
             return _mapper.Map<UserReadDto>(user);
+        }
+
+        public override async Task<UserReadDto> UpdateOneAsync(Guid id, UserUpdateDto updateDto)
+        {
+            var existingUser = await _userRepository.GetByIdAsync(id) ?? throw AppException.NotFound();
+            if (!string.IsNullOrEmpty(updateDto.Email))
+            {
+                existingUser.Email = updateDto.Email;
+            }
+            if (!string.IsNullOrEmpty(updateDto.Name))
+            {
+                existingUser.Name = updateDto.Name;
+            }
+            if (updateDto.Avatar != null)
+            {
+                var uploadResult = await _imageService.UploadImageAsync(updateDto.Avatar);
+                existingUser.Avatar = uploadResult.SecureUrl.ToString();
+            }
+            var updatedUser = await _userRepository.UpdateAsync(existingUser);
+            _cache.Remove($"GetById-{id}");
+            _cache.Remove($"GetAll-{typeof(User).Name}");
+            return _mapper.Map<UserReadDto>(updatedUser);
         }
 
         public async Task<bool> ResetPasswordAsync(Guid userId, string newPassword)

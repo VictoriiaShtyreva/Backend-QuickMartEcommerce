@@ -87,10 +87,6 @@ namespace Ecommerce.Service.src.Services
                     entityProperty.SetValue(updateDto, propertyValue);
                 }
             }
-            if (await _repository.ExistsAsync(updatedEntity))
-            {
-                throw AppException.DuplicateException();
-            }
             var result = await _repository.UpdateAsync(updatedEntity);
             _cache.Remove($"GetById-{id}");
             _cache.Remove($"GetAll-{typeof(TEntity).Name}");

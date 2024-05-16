@@ -47,6 +47,7 @@ namespace Ecommerce.WebAPI.src.Data
                 entity.HasIndex(u => u.Email).IsUnique().HasDatabaseName("users_email_key");
                 entity.Property(u => u.Name).IsRequired().HasMaxLength(255);
                 entity.Property(u => u.Password).IsRequired().HasMaxLength(255);
+                entity.HasOne(u => u.Cart).WithOne(c => c.User).HasForeignKey<Cart>(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<User>().ToTable(u => u.HasCheckConstraint("users_avatar_check", "avatar LIKE 'http%' OR avatar = ''"));
 
