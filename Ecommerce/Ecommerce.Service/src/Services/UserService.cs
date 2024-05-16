@@ -13,14 +13,12 @@ namespace Ecommerce.Service.src.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher<User> _passwordHasher;
-        private readonly IMemoryCache _cache;
         private readonly MemoryCacheEntryOptions _cacheOptions;
         public UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher, IMemoryCache cache)
             : base(userRepository, mapper, cache)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
-            _cache = cache;
             _cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
 
         }

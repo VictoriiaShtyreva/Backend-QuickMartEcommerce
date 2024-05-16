@@ -4,13 +4,14 @@ using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Ecommerce.Service.src.Services
 {
     public class CartItemService : BaseService<CartItem, CartItemReadDto, CartItemCreateDto, CartItemUpdateDto, QueryOptions>, ICartItemService
     {
-        public CartItemService(IBaseRepository<CartItem, QueryOptions> repository, IMapper mapper)
-        : base(repository, mapper)
+        public CartItemService(IBaseRepository<CartItem, QueryOptions> repository, IMapper mapper, IMemoryCache cache)
+        : base(repository, mapper, cache)
         {
 
         }

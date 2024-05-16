@@ -5,6 +5,7 @@ using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Ecommerce.Service.src.Services
 {
@@ -14,8 +15,8 @@ namespace Ecommerce.Service.src.Services
         private readonly ICartRepository _cartRepository;
         private readonly IBaseRepository<Address, QueryOptions> _addressRepository;
         private readonly IProductRepository _productRepository;
-        public OrderService(IOrderRepository orderRepository, ICartRepository cartRepository, IBaseRepository<Address, QueryOptions> addressRepository, IProductRepository productRepository, IMapper mapper)
-            : base(orderRepository, mapper)
+        public OrderService(IOrderRepository orderRepository, ICartRepository cartRepository, IBaseRepository<Address, QueryOptions> addressRepository, IProductRepository productRepository, IMapper mapper, IMemoryCache cache)
+            : base(orderRepository, mapper, cache)
         {
             _orderRepository = orderRepository;
             _cartRepository = cartRepository;

@@ -6,6 +6,7 @@ using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Services;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
 namespace Ecommerce.Tests.src.xUnitTests.Service
@@ -15,10 +16,11 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         private readonly CategoryService _categoryService;
         private readonly Mock<ICategoryRepository> _mockCategoryRepository = new Mock<ICategoryRepository>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
+        private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
 
         public CategoryServiceTests()
         {
-            _categoryService = new CategoryService(_mockCategoryRepository.Object, _mockMapper.Object);
+            _categoryService = new CategoryService(_mockCategoryRepository.Object, _mockMapper.Object, _mockCache.Object);
         }
 
         [Fact]
@@ -92,6 +94,10 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             _mockCategoryRepository.Setup(x => x.GetAllAsync(queryOptions)).ReturnsAsync(categories);
             _mockMapper.Setup(m => m.Map<IEnumerable<CategoryReadDto>>(categories))
                 .Returns(categories.Select(c => new CategoryReadDto { Name = c.Name, Image = c.Image }));
+            // Setup cache to return false initially and then set cache with the users list
+            object cacheValue;
+            _mockCache.Setup(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!)).Returns(false);
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
 
             // Act
             var result = await _categoryService.GetAllAsync(queryOptions);
@@ -99,6 +105,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             // Assert
             Assert.NotNull(result);
             Assert.Equal(3, result.Count());
+            _mockCache.Verify(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!), Times.Once);
         }
 
         [Fact]
@@ -111,6 +118,10 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             _mockCategoryRepository.Setup(x => x.GetByIdAsync(categoryId)).ReturnsAsync(category);
             _mockMapper.Setup(m => m.Map<CategoryReadDto>(category))
                 .Returns(new CategoryReadDto { Name = category.Name, Image = category.Image });
+            // Set up cache to return false initially and then set cache with the user
+            object cacheValue;
+            _mockCache.Setup(c => c.TryGetValue($"GetById-{categoryId}", out cacheValue!)).Returns(false);
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
 
             // Act
             var result = await _categoryService.GetOneByIdAsync(categoryId);
@@ -119,6 +130,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             Assert.NotNull(result);
             Assert.Equal("Category", result.Name);
             Assert.Equal("http://example.com/image.jpg", result.Image);
+            _mockCache.Verify(c => c.TryGetValue($"GetById-{categoryId}", out It.Ref<object>.IsAny!), Times.Once);
         }
 
         [Fact]

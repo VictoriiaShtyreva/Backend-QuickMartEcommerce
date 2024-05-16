@@ -5,6 +5,7 @@ using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Services;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
 namespace Ecommerce.Tests.src.xUnitTests.Service
@@ -16,10 +17,11 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         private readonly Mock<IProductRepository> _mockProductRepository = new Mock<IProductRepository>();
         private readonly Mock<IUnitOfWork> _mockUnitOfWork = new Mock<IUnitOfWork>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
+        private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
 
         public CartServiceTests()
         {
-            _cartService = new CartService(_mockCartRepository.Object, _mockMapper.Object, _mockUnitOfWork.Object, _mockProductRepository.Object);
+            _cartService = new CartService(_mockCartRepository.Object, _mockMapper.Object, _mockUnitOfWork.Object, _mockProductRepository.Object, _mockCache.Object);
         }
 
         [Theory]

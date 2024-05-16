@@ -13,13 +13,10 @@ namespace Ecommerce.Controller.src.Controllers
     {
         private readonly IUserService _userService;
         private readonly IAuthorizationService _authorizationService;
-        private readonly ICloudinaryImageService _imageService;
-
-        public UserController(IUserService userService, IAuthorizationService authorizationService, ICloudinaryImageService imageService)
+        public UserController(IUserService userService, IAuthorizationService authorizationService)
         {
             _userService = userService;
             _authorizationService = authorizationService;
-            _imageService = imageService;
         }
 
         [HttpGet("{userId}")]
@@ -53,28 +50,28 @@ namespace Ecommerce.Controller.src.Controllers
             }
         }
 
-        [HttpPost]
-        [AllowAnonymous]
-        public async Task<ActionResult<UserReadDto>> CreateUser([FromBody] UserCreateDto createDto, [FromForm] IFormFile? avatar)
-        {
-            if (avatar != null)
-            {
-                var uploadResult = await _imageService.UploadImageAsync(avatar);
-                if (uploadResult.Error != null)
-                {
-                    return BadRequest(uploadResult.Error.Message);
-                }
-                createDto.Avatar = uploadResult.SecureUrl.AbsoluteUri;
-            }
-            var user = await _userService.CreateOneAsync(createDto);
-            return CreatedAtAction(nameof(GetUserById), new { userId = user.Id }, user);
-        }
+        // [HttpPost]
+        // [AllowAnonymous]
+        // public async Task<ActionResult<UserReadDto>> CreateUser([FromBody] UserCreateDto createDto)
+        // {
+        //     if (createDto.Avatar != null)
+        //     {
+        //         var uploadResult = await _imageService.UploadImageAsync(createDto.Avatar);
+        //         if (uploadResult.Error != null)
+        //         {
+        //             return BadRequest(uploadResult.Error.Message);
+        //         }
+        //         createDto.Avatar = uploadResult.SecureUrl.AbsoluteUri.ToString();
+        //     }
+        //     var user = await _userService.CreateOneAsync(createDto);
+        //     return CreatedAtAction(nameof(GetUserById), new { userId = user.Id }, user);
+        // }
 
         [HttpPatch("{userId}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<UserReadDto>> UpdateUser([FromQuery] Guid userId, UserUpdateDto updateDto)
+        public async Task<ActionResult<UserReadDto>> UpdateUser([FromRoute] Guid userId, UserUpdateDto updateDto)
         {
             var user = await _userService.GetOneByIdAsync(userId);
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, user, "AdminOrOwnerAccountRequirement");

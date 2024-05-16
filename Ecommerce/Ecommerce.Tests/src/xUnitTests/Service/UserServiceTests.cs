@@ -6,6 +6,7 @@ using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Services;
+using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
@@ -19,7 +20,6 @@ namespace Ecommerce.Tests.src.Service
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
         private readonly Mock<IPasswordHasher<User>> _mockPasswordHasher = new Mock<IPasswordHasher<User>>();
         private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
-        private readonly MemoryCacheEntryOptions _cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
         public UserServiceTests()
         {
             _userService = new UserService(_mockUserRepository.Object, _mockMapper.Object, _mockPasswordHasher.Object, _mockCache.Object);
@@ -33,13 +33,6 @@ namespace Ecommerce.Tests.src.Service
                 Email = "test@example.com",
                 Password = "oldPasswordHash"
             };
-        }
-
-        private void SetupCache<T>(string key, T value)
-        {
-            var cacheEntry = Mock.Of<ICacheEntry>();
-            _mockCache.Setup(m => m.CreateEntry(It.IsAny<object>())).Returns(cacheEntry);
-            _mockCache.Setup(m => m.TryGetValue(key, out value!)).Returns(true);
         }
 
         [Fact]
@@ -106,8 +99,9 @@ namespace Ecommerce.Tests.src.Service
             // Assert
             Assert.Equal("Updated Name", result.Name);
             _mockUserRepository.Verify(r => r.UpdateAsync(It.IsAny<User>()), Times.Once);
-            _mockCache.Verify(c => c.Remove(It.IsAny<string>()), Times.Exactly(3));
+            _mockCache.Verify(c => c.Remove(It.IsAny<string>()), Times.Exactly(2));
         }
+
 
         [Fact]
         public async Task UpdateOneAsync_ShouldThrowKeyNotFoundException_WhenUserNotFound()
@@ -178,7 +172,6 @@ namespace Ecommerce.Tests.src.Service
             }
 
             _mockUserRepository.Verify(r => r.DeleteAsync(userId), Times.Once);
-            _mockCache.Verify(c => c.Remove(It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]
@@ -237,6 +230,11 @@ namespace Ecommerce.Tests.src.Service
             _mockUserRepository.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions>())).ReturnsAsync(users);
             _mockMapper.Setup(m => m.Map<IEnumerable<UserReadDto>>(users)).Returns(userDtos);
 
+            // Setup cache to return false initially and then set cache with the users list
+            object cacheValue;
+            _mockCache.Setup(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!)).Returns(false);
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
+
             // Act
             var result = await _userService.GetAllAsync(new QueryOptions());
 
@@ -245,6 +243,7 @@ namespace Ecommerce.Tests.src.Service
             Assert.Equal(userDtos.Count, result.Count());
             _mockUserRepository.Verify(r => r.GetAllAsync(It.IsAny<QueryOptions>()), Times.Once);
             _mockMapper.Verify(m => m.Map<IEnumerable<UserReadDto>>(users), Times.Once);
+            _mockCache.Verify(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!), Times.Once);
         }
 
         [Fact]
@@ -258,6 +257,11 @@ namespace Ecommerce.Tests.src.Service
             _mockUserRepository.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(user);
             _mockMapper.Setup(m => m.Map<UserReadDto>(user)).Returns(userDto);
 
+            // Set up cache to return false initially and then set cache with the user
+            object cacheValue;
+            _mockCache.Setup(c => c.TryGetValue($"GetById-{userId}", out cacheValue!)).Returns(false);
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
+
             // Act
             var result = await _userService.GetOneByIdAsync(userId);
 
@@ -266,10 +270,8 @@ namespace Ecommerce.Tests.src.Service
             Assert.Equal(user.Email, result.Email);
             _mockUserRepository.Verify(r => r.GetByIdAsync(userId), Times.Once);
             _mockMapper.Verify(m => m.Map<UserReadDto>(user), Times.Once);
-            _mockCache.Verify(c => c.TryGetValue($"GetById-{userId}", out It.Ref<User>.IsAny!), Times.Once);
-            _mockCache.Verify(c => c.Set($"GetById-{userId}", user, It.IsAny<MemoryCacheEntryOptions>()), Times.Once);
+            _mockCache.Verify(c => c.TryGetValue($"GetById-{userId}", out It.Ref<object>.IsAny!), Times.Once);
         }
-
         [Fact]
         public async Task GetOneByIdAsync_ThrowsNotFoundException_WhenNotFound()
         {

@@ -1,4 +1,5 @@
 using Ecommerce.Core.src.ValueObjects;
+using Microsoft.AspNetCore.Http;
 
 namespace Ecommerce.Service.src.DTOs
 {
@@ -17,7 +18,7 @@ namespace Ecommerce.Service.src.DTOs
         public string? Name { get; set; }
         public string? Email { get; set; }
         public string? Password { get; set; }
-        public string? Avatar { get; set; }
+        public IFormFile? Avatar { get; set; }
         public UserRole Role { get; set; }
 
     }
@@ -27,7 +28,7 @@ namespace Ecommerce.Service.src.DTOs
         public string? Name { get; set; }
         public string? Email { get; set; }
         public string? Password { get; set; }
-        public string? Avatar { get; set; }
+        public IFormFile? Avatar { get; set; }
         public UserRole Role { get; set; }
     }
 

@@ -4,6 +4,7 @@ using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Ecommerce.Service.src.Services
 {
@@ -12,7 +13,7 @@ namespace Ecommerce.Service.src.Services
         private IProductRepository _productRepository;
         private IProductImageRepository _productImageRepository;
 
-        public ProductService(IProductRepository productRepository, IMapper mapper, IProductImageRepository productImageRepository) : base(productRepository, mapper)
+        public ProductService(IProductRepository productRepository, IMapper mapper, IProductImageRepository productImageRepository, IMemoryCache cache) : base(productRepository, mapper, cache)
         {
             _productRepository = productRepository;
             _productImageRepository = productImageRepository;

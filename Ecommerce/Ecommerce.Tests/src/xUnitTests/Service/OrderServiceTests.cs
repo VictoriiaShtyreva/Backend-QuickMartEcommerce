@@ -7,6 +7,7 @@ using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Services;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
 namespace Ecommerce.Tests.src.xUnitTests.Service
@@ -18,11 +19,12 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         private readonly Mock<IBaseRepository<Address, QueryOptions>> _mockAddressRepository = new Mock<IBaseRepository<Address, QueryOptions>>();
         private readonly Mock<IProductRepository> _mockProductRepository = new Mock<IProductRepository>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
+        private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
         private readonly OrderService _service;
 
         public OrderServiceTests()
         {
-            _service = new OrderService(_mockOrderRepository.Object, _mockCartRepository.Object, _mockAddressRepository.Object, _mockProductRepository.Object, _mockMapper.Object);
+            _service = new OrderService(_mockOrderRepository.Object, _mockCartRepository.Object, _mockAddressRepository.Object, _mockProductRepository.Object, _mockMapper.Object, _mockCache.Object);
         }
 
         [Theory]
@@ -188,11 +190,16 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
 
             _mockOrderRepository.Setup(r => r.GetByIdAsync(orderId)).ReturnsAsync(order);
             _mockMapper.Setup(m => m.Map<OrderReadDto>(order)).Returns(new OrderReadDto { Id = order.Id, UserId = order.UserId });
+            // Set up cache to return false initially and then set cache with the user
+            object cacheValue;
+            _mockCache.Setup(c => c.TryGetValue($"GetById-{orderId}", out cacheValue!)).Returns(false);
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
 
             var result = await _service.GetOneByIdAsync(orderId);
 
             Assert.NotNull(result);
             Assert.Equal(order.Id, result.Id);
+            _mockCache.Verify(c => c.TryGetValue($"GetById-{orderId}", out It.Ref<object>.IsAny!), Times.Once);
         }
 
         [Fact]
