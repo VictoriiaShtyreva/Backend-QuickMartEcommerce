@@ -15,10 +15,12 @@ using Ecommerce.WebAPI.src.ExternalService;
 using Ecommerce.WebAPI.src.Middleware;
 using Ecommerce.WebAPI.src.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,32 +39,21 @@ builder.Services.AddMemoryCache();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerGen(c =>
-{
-    // Include 'SecurityScheme' to use JWT Authentication
-    var jwtSecurityScheme = new OpenApiSecurityScheme
+//Add authorization for Swagger
+builder.Services.AddSwaggerGen(
+    options =>
     {
-        BearerFormat = "JWT",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = JwtBearerDefaults.AuthenticationScheme,
-        Description = "Put Bearer + your token in the box below",
-
-        Reference = new OpenApiReference
+        options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
         {
-            Id = JwtBearerDefaults.AuthenticationScheme,
-            Type = ReferenceType.SecurityScheme
+            Description = "Bearer token authentication",
+            Name = "Authorization",
+            In = ParameterLocation.Header,
+            Scheme = "Bearer"
         }
-    };
-
-    c.AddSecurityDefinition(jwtSecurityScheme.Reference.Id, jwtSecurityScheme);
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { jwtSecurityScheme, Array.Empty<string>() }
-    });
-});
+        );
+        options.OperationFilter<SecurityRequirementsOperationFilter>();
+    }
+);
 
 // adding db context into app
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("Localhost"));
@@ -137,22 +128,27 @@ var cloudinaryAccount = new Account(
 var cloudinary = new Cloudinary(cloudinaryAccount);
 builder.Services.AddSingleton(cloudinary);
 
-// Add authentication instructions
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(
-    options =>
+
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Secrets:JwtKey"]!)),
-            ValidateIssuer = true,
-            ValidateAudience = false,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Secrets:Issuer"]
-        };
-    }
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Secrets:JwtKey"]!)),
+        ValidateIssuer = true,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Secrets:Issuer"]
+    };
+}
 );
+
+
+// Resource based auth handlers
+builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerOrderHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerReviewHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerAccountHandler>();
 
 // Add authorization instructions
 builder.Services.AddAuthorizationBuilder()

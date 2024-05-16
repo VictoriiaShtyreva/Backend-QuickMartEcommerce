@@ -1,5 +1,6 @@
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
+using Ecommerce.Service.src.DTOs;
 
 namespace Ecommerce.Service.src.Interfaces
 {
@@ -7,6 +8,6 @@ namespace Ecommerce.Service.src.Interfaces
     {
         Task<string> LogInAsync(UserCredential userCredential);
         Task<string> LogoutAsync();
-        Task<User> AuthenticateUserAsync(string token);
+        Task<UserReadDto> AuthenticateUserAsync(string token);
     }
 }
