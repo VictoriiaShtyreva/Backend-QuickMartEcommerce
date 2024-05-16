@@ -1,5 +1,4 @@
 using Ecommerce.Core.src.Common;
-using Ecommerce.Core.src.Entities;
 using Ecommerce.Service.src.DTOs;
 
 namespace Ecommerce.Service.src.Interfaces

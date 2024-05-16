@@ -5,6 +5,7 @@ using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Ecommerce.Service.src.Services
 {
@@ -12,11 +13,16 @@ namespace Ecommerce.Service.src.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IPasswordHasher<User> _passwordHasher;
-        public UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher)
-            : base(userRepository, mapper)
+        private readonly IMemoryCache _cache;
+        private readonly MemoryCacheEntryOptions _cacheOptions;
+        public UserService(IUserRepository userRepository, IMapper mapper, IPasswordHasher<User> passwordHasher, IMemoryCache cache)
+            : base(userRepository, mapper, cache)
         {
             _userRepository = userRepository;
             _passwordHasher = passwordHasher;
+            _cache = cache;
+            _cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
+
         }
 
         // override CreateAsync to hash password
@@ -25,11 +31,7 @@ namespace Ecommerce.Service.src.Services
             var user = _mapper.Map<User>(createDto);
             user.Password = _passwordHasher.HashPassword(user, createDto.Password);
             user = await _userRepository.CreateAsync(user);
-            return _mapper.Map<UserReadDto>(user);
-        }
-        public async Task<UserReadDto> GetUserByEmailAsync(string email)
-        {
-            var user = await _userRepository.GetByEmailAsync(email) ?? throw AppException.NotFound();
+            _cache.Remove($"GetAll-{typeof(User).Name}");
             return _mapper.Map<UserReadDto>(user);
         }
 
@@ -39,6 +41,7 @@ namespace Ecommerce.Service.src.Services
             if (user == null) return false;
             user.Password = _passwordHasher.HashPassword(user, newPassword);
             await _userRepository.UpdateAsync(user);
+            _cache.Remove(user.Email!);
             return true;
         }
 
@@ -47,6 +50,7 @@ namespace Ecommerce.Service.src.Services
             var user = await _userRepository.GetByIdAsync(userId) ?? throw AppException.NotFound();
             user.Password = _passwordHasher.HashPassword(user, newPassword);
             await _userRepository.UpdateAsync(user);
+            _cache.Remove(user.Email!);
             return true;
         }
 
@@ -55,6 +59,7 @@ namespace Ecommerce.Service.src.Services
             var user = await _userRepository.GetByIdAsync(userId) ?? throw AppException.NotFound();
             user.Role = roleUpdateDto.NewRole;
             user = await _userRepository.UpdateAsync(user);
+            _cache.Remove(user?.Email!);
             return _mapper.Map<UserReadDto>(user);
         }
     }

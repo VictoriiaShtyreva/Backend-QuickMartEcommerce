@@ -7,7 +7,6 @@ namespace Ecommerce.Service.src.Interfaces
     {
         Task<bool> UpdatePasswordAsync(Guid userId, string newPassword);
         Task<UserReadDto> UpdateRoleAsync(Guid userId, UserRoleUpdateDto roleUpdateDto);
-        Task<UserReadDto> GetUserByEmailAsync(string email);
         Task<bool> ResetPasswordAsync(Guid userId, string newPassword);
 
     }
