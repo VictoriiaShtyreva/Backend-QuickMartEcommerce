@@ -20,16 +20,22 @@ namespace Ecommerce.Service.src.Shared
             CreateMap<UserRoleUpdateDto, User>();
 
             // Cart mappings
-            CreateMap<Cart, CartReadDto>().ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.CartItems));
-            CreateMap<CartCreateDto, Cart>();
-            // Only map non-null fields to allow partial updates
-            CreateMap<CartUpdateDto, Cart>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
+            CreateMap<Cart, CartReadDto>()
+                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.CartItems));
+            CreateMap<CartCreateDto, Cart>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+            CreateMap<CartUpdateDto, Cart>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
 
             // CartItem mappings
             CreateMap<CartItem, CartItemReadDto>();
-            CreateMap<CartItemCreateDto, CartItem>();
-            // Only map non-null fields to allow partial updates
-            CreateMap<CartItemUpdateDto, CartItem>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
+            CreateMap<CartItemCreateDto, CartItem>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+            CreateMap<CartItemUpdateDto, CartItem>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
+
 
             // Category mappings
             CreateMap<Category, CategoryReadDto>();

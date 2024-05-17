@@ -105,7 +105,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             var orderCreateDto = new OrderCreateDto
             {
                 UserId = userId,
-                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = 12345, Country = "Testland" }
+                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" }
             };
 
             if (!isCartPresent || itemCount == 0)
@@ -123,7 +123,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
                     .Returns(new OrderReadDto
                     {
                         UserId = userId,
-                        ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = 12345, Country = "Testland" },
+                        ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
                         OrderItems = new System.Collections.Generic.List<OrderItemReadDto>()
                     });
 

@@ -21,22 +21,29 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
         }
 
         // Method for add item to cart
-        public void AddItem(CartItem cartItem)
+        public void AddProduct(Product product, int quantity)
         {
-            Guard.Against.Null(cartItem, nameof(cartItem));
-            Guard.Against.NegativeOrZero(cartItem.Quantity, nameof(cartItem.Quantity));
+            Guard.Against.Null(product, nameof(product));
+            Guard.Against.NegativeOrZero(quantity, nameof(quantity));
 
-            var existingItem = _items?.FirstOrDefault(i => i.ProductId == cartItem.ProductId);
+            var existingItem = _items?.FirstOrDefault(i => i.ProductId == product.Id);
             if (existingItem != null)
             {
-                existingItem.AddQuantity(cartItem.Quantity);
+                existingItem.AddQuantity(quantity);
+                existingItem.UpdatedAt = DateTime.UtcNow;
             }
             else
             {
+                var cartItem = new CartItem(Id, product.Id, quantity)
+                {
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
                 _items?.Add(cartItem);
             }
             UpdatedAt = DateTime.UtcNow;
         }
+
 
         // Method to remove an item from the cart
         public void RemoveItem(CartItem cartItem)
@@ -52,14 +59,14 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
             {
                 _items?.Remove(existingItem);
             }
-            UpdatedAt = DateTime.UtcNow; // Update timestamp
+            UpdatedAt = DateTime.UtcNow;
         }
 
         // Method to clear the cart
         public void ClearCart()
         {
             _items?.Clear();
-            UpdatedAt = DateTime.UtcNow; // Update timestamp
+            UpdatedAt = DateTime.UtcNow;
         }
 
         // A custom equality comparer for CartItem to define uniqueness in the HashSet

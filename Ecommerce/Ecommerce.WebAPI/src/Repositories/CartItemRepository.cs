@@ -78,11 +78,9 @@ namespace Ecommerce.WebAPI.src.Repositories
 
         public async Task<CartItem?> UpdateAsync(CartItem entity)
         {
-            var existingCartItem = await _cartItems.FindAsync(entity.Id) ?? throw AppException.NotFound();
-            existingCartItem.Quantity = entity.Quantity;
-            _cartItems.Update(existingCartItem);
+            _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-            return existingCartItem;
+            return entity;
         }
 
         public async Task<bool> ExistsAsync(CartItem entity)

@@ -116,8 +116,7 @@ builder.Services.AddScoped<IBaseRepository<OrderItem, QueryOptions>, OrderItemRe
 builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 // Address
 builder.Services.AddScoped<IBaseRepository<Address, QueryOptions>, AddressRepository>();
-//UnitOfWork
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
 //Cloudinary
 builder.Services.AddScoped<ICloudinaryImageService, CloudinaryImageService>();
 // Configure Cloudinary

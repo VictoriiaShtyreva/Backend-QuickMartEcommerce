@@ -39,7 +39,7 @@ namespace Ecommerce.Controller.src.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<CartItemReadDto>> AddProductToCartAsync([FromRoute] Guid userId, [FromForm] CartItemCreateDto addProductDto)
+        public async Task<ActionResult<CartItemReadDto>> AddProductToCartAsync([FromRoute] Guid userId, [FromBody] CartItemCreateDto addProductDto)
         {
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, new UserReadDto { Id = userId }, "AdminOrOwnerAccount");
             if (!authorizationResult.Succeeded)
