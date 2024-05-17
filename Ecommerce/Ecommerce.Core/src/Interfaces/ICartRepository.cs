@@ -7,5 +7,6 @@ namespace Ecommerce.Core.src.Interfaces
     {
         // Method to retrieve a cart by its associated user ID
         Task<Cart> GetCartByUserIdAsync(Guid userId);
+        Task<CartItem> AddProductToCartAsync(Guid userId, Guid productId, int quantity);
     }
 }

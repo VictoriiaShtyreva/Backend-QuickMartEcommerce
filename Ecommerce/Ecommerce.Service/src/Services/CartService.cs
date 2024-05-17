@@ -11,46 +11,20 @@ namespace Ecommerce.Service.src.Services
     public class CartService : BaseService<Cart, CartReadDto, CartCreateDto, CartUpdateDto, QueryOptions>, ICartService
     {
         private readonly ICartRepository _cartRepository;
-        private readonly IProductRepository _productRepository;
-        private readonly IUnitOfWork _unitOfWork;
 
-        public CartService(ICartRepository cartRepository, IMapper mapper, IUnitOfWork unitOfWork, IProductRepository productRepository, IMemoryCache cache)
+
+        public CartService(ICartRepository cartRepository, IMapper mapper, IMemoryCache cache)
            : base(cartRepository, mapper, cache)
         {
             _cartRepository = cartRepository;
-            _productRepository = productRepository;
-            _unitOfWork = unitOfWork;
+
         }
+
         public async Task<CartItem> AddProductToCartAsync(Guid userId, Guid productId, int quantity)
         {
-            using (var transaction = _unitOfWork.BeginTransactionAsync())
-            {
-                try
-                {
-                    // Fetch the product and check inventory
-                    var product = await _productRepository.GetByIdAsync(productId);
-                    if (product == null || product.Inventory < quantity)
-                    {
-                        throw new InvalidOperationException("Product is unavailable or inventory is insufficient.");
-                    }
-                    var cart = await _cartRepository.GetCartByUserIdAsync(userId);
-                    var cartItem = new CartItem(cart.Id, productId, quantity);
-                    cart.AddItem(cartItem);
-                    // Decrease product inventory
-                    product.Inventory -= quantity;
-                    await _productRepository.UpdateAsync(product);
-                    // Update the cart
-                    await _cartRepository.UpdateAsync(cart);
-                    await _unitOfWork.CommitAsync();
-                    // Return the newly added cart item
-                    return cartItem;
-                }
-                catch (Exception ex)
-                {
-                    await _unitOfWork.RollbackAsync();
-                    throw new ApplicationException("Failed to add product to cart.", ex);
-                }
-            }
+            var cartItem = await _cartRepository.AddProductToCartAsync(userId, productId, quantity);
+            InvalidateCacheForCart(userId);
+            return cartItem;
         }
 
         public async Task<bool> ClearCartAsync(Guid cartId)
@@ -58,12 +32,17 @@ namespace Ecommerce.Service.src.Services
             var cart = await _cartRepository.GetByIdAsync(cartId) ?? throw AppException.NotFound();
             cart.ClearCart();
             await _cartRepository.UpdateAsync(cart);
+            InvalidateCacheForCart(cart.UserId);
             return true;
         }
 
         public async Task<CartReadDto> GetCartByUserIdAsync(Guid userId)
         {
-            var cart = await _cartRepository.GetCartByUserIdAsync(userId) ?? throw AppException.NotFound();
+            if (!_cache.TryGetValue($"Cart-{userId}", out Cart? cart))
+            {
+                cart = await _cartRepository.GetCartByUserIdAsync(userId) ?? throw AppException.NotFound();
+                _cache.Set($"Cart-{userId}", cart, TimeSpan.FromMinutes(30));
+            }
             return _mapper.Map<CartReadDto>(cart);
         }
 
@@ -72,7 +51,13 @@ namespace Ecommerce.Service.src.Services
             var cart = await _cartRepository.GetByIdAsync(cartId) ?? throw AppException.NotFound();
             cart.RemoveItem(cartItem);
             await _cartRepository.UpdateAsync(cart);
+            InvalidateCacheForCart(cart.UserId);
             return true;
+        }
+
+        private void InvalidateCacheForCart(Guid userId)
+        {
+            _cache.Remove($"Cart-{userId}");
         }
     }
 }

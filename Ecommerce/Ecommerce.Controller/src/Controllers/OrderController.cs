@@ -67,7 +67,7 @@ namespace Ecommerce.Controller.src.Controllers
         public async Task<ActionResult<OrderReadDto>> CreateOrderAsync([FromBody] OrderCreateDto orderCreateDto)
         {
             var createdOrder = await _orderService.CreateOrderFromCartAsync(orderCreateDto);
-            return CreatedAtAction(nameof(GetOrdersByUserIdAsync), new { orderId = createdOrder.Id }, createdOrder);
+            return CreatedAtAction(nameof(GetOrdersByUserIdAsync), createdOrder);
         }
 
     }
