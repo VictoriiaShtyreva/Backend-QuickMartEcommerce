@@ -147,7 +147,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
                     Description = "Test Description"
                 };
                 _mockProductRepository.Setup(p => p.GetByIdAsync(productId)).ReturnsAsync(product);
-                cart.AddItem(productId, i + 1);
+                cart.AddItem(new CartItem(cart.Id, productId, i + 1));
             }
             return cart;
         }
@@ -155,8 +155,8 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         [Fact]
         public async Task CreateOneAsync_ShouldReturnCreatedOrderReadDto()
         {
-            var createDto = new OrderCreateDto { UserId = Guid.NewGuid(), TotalPrice = 100 };
-            var createdOrder = new Order { Id = Guid.NewGuid(), UserId = createDto.UserId, TotalPrice = createDto.TotalPrice };
+            var createDto = new OrderCreateDto { UserId = Guid.NewGuid() };
+            var createdOrder = new Order { Id = Guid.NewGuid(), UserId = createDto.UserId };
 
             _mockMapper.Setup(m => m.Map<Order>(It.IsAny<OrderCreateDto>())).Returns(createdOrder);
             _mockOrderRepository.Setup(r => r.ExistsAsync(It.IsAny<Order>())).ReturnsAsync(false);
@@ -167,7 +167,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
 
             Assert.NotNull(result);
             Assert.Equal(createDto.UserId, result.UserId);
-            Assert.Equal(createDto.TotalPrice, result.TotalPrice);
         }
 
         [Fact]

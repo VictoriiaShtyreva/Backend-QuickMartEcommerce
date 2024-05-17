@@ -4,58 +4,76 @@ namespace Ecommerce.Tests.src.Core
 {
     public class CartTests
     {
-        public static IEnumerable<object[]> AddItemData()
+        [Theory]
+        [InlineData("00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000001", 1)]
+        [InlineData("00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000002", 2)]
+        public void AddItem_ShouldAddNewItem_WhenItemDoesNotExist(Guid cartId, Guid productId, int quantity)
         {
-            yield return new object[] { new CartItem(Guid.NewGuid(), Guid.NewGuid(), 5), 5, 1 };
-            yield return new object[] { new CartItem(Guid.NewGuid(), Guid.NewGuid(), 2), 3, 1 };
-        }
+            // Arrange
+            var cart = new Cart(cartId);
 
-        public static IEnumerable<object[]> RemoveItemData()
-        {
-            yield return new object[] { new CartItem(Guid.NewGuid(), Guid.NewGuid(), 5), 3, 2 };
-            yield return new object[] { new CartItem(Guid.NewGuid(), Guid.NewGuid(), 10), 5, 5 };
+            // Act
+            cart.AddItem(new CartItem(cartId, productId, quantity));
+
+            // Assert
+            Assert.Single(cart.CartItems!);
+            Assert.Contains(cart.CartItems!, item => item.ProductId == productId && item.Quantity == quantity);
         }
 
         [Theory]
-        [MemberData(nameof(AddItemData))]
-        public void AddItem_UpdatesCartCorrectly(CartItem initialItem, int quantityToAdd, int expectedCount)
+        [InlineData("00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000001", 1, 2)]
+        public void AddItem_ShouldUpdateQuantity_WhenItemExists(Guid cartId, Guid productId, int initialQuantity, int additionalQuantity)
         {
             // Arrange
-            var cart = new Cart(Guid.NewGuid());
-            cart.AddItem(initialItem.ProductId, initialItem.Quantity);
+            var cart = new Cart(cartId);
+            cart.AddItem(new CartItem(cartId, productId, initialQuantity));
 
             // Act
-            cart.AddItem(initialItem.ProductId, quantityToAdd);
+            cart.AddItem(new CartItem(cartId, productId, additionalQuantity));
 
             // Assert
-            Assert.Equal(expectedCount, cart.CartItems!.Count);
-            Assert.Equal(initialItem.Quantity + quantityToAdd, cart.CartItems.First(i => i.ProductId == initialItem.ProductId).Quantity);
+            Assert.Single(cart.CartItems!);
+            Assert.Contains(cart.CartItems!, item => item.ProductId == productId && item.Quantity == initialQuantity + additionalQuantity);
         }
 
         [Theory]
-        [MemberData(nameof(RemoveItemData))]
-        public void RemoveItem_UpdatesCartCorrectly(CartItem initialItem, int quantityToRemove, int expectedFinalQuantity)
+        [InlineData("00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000001", 2, 1)]
+        public void RemoveItem_ShouldReduceQuantity_WhenQuantityIsLessThanExisting(Guid cartId, Guid productId, int initialQuantity, int reduceQuantity)
         {
             // Arrange
-            var cart = new Cart(Guid.NewGuid());
-            cart.AddItem(initialItem.ProductId, initialItem.Quantity);
+            var cart = new Cart(cartId);
+            cart.AddItem(new CartItem(cartId, productId, initialQuantity));
 
             // Act
-            cart.RemoveItem(initialItem.ProductId, quantityToRemove);
+            cart.RemoveItem(new CartItem(cartId, productId, reduceQuantity));
 
             // Assert
-            var item = cart.CartItems!.FirstOrDefault(i => i.ProductId == initialItem.ProductId);
-            Assert.NotNull(item);
-            Assert.Equal(expectedFinalQuantity, item.Quantity);
+            Assert.Single(cart.CartItems!);
+            Assert.Contains(cart.CartItems!, item => item.ProductId == productId && item.Quantity == initialQuantity - reduceQuantity);
+        }
+
+        [Theory]
+        [InlineData("00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000001", 1, 1)]
+        public void RemoveItem_ShouldRemoveItem_WhenQuantityIsEqualToExisting(Guid cartId, Guid productId, int initialQuantity, int reduceQuantity)
+        {
+            // Arrange
+            var cart = new Cart(cartId);
+            cart.AddItem(new CartItem(cartId, productId, initialQuantity));
+
+            // Act
+            cart.RemoveItem(new CartItem(cartId, productId, reduceQuantity));
+
+            // Assert
+            Assert.Empty(cart.CartItems!);
         }
 
         [Fact]
-        public void ClearCart_RemovesAllItems()
+        public void ClearCart_ShouldRemoveAllItems()
         {
             // Arrange
             var cart = new Cart(Guid.NewGuid());
-            cart.AddItem(Guid.NewGuid(), 5);
-            cart.AddItem(Guid.NewGuid(), 10);
+            cart.AddItem(new CartItem(cart.Id, Guid.NewGuid(), 1));
+            cart.AddItem(new CartItem(cart.Id, Guid.NewGuid(), 2));
 
             // Act
             cart.ClearCart();

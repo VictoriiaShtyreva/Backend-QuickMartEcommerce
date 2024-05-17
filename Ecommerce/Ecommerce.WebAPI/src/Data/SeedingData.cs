@@ -129,9 +129,9 @@ namespace Ecommerce.WebAPI.src.Data
         {
             var addresses = new List<Address>
             {
-                new Address { Id = Guid.NewGuid(), AddressLine = "123 Main St", City = "Townsville", PostalCode = 12345, Country = "USA" },
-                new Address { Id = Guid.NewGuid(), AddressLine = "456 Elm St", City = "Villageville", PostalCode = 67890, Country = "USA" },
-                new Address { Id = Guid.NewGuid(), AddressLine = "789 Oak St", City = "Citytown", PostalCode = 11223, Country = "USA" }
+                new Address { Id = Guid.NewGuid(), AddressLine = "123 Main St", City = "Townsville", PostalCode = "12345", Country = "USA" },
+                new Address { Id = Guid.NewGuid(), AddressLine = "456 Elm St", City = "Villageville", PostalCode = "67890", Country = "USA" },
+                new Address { Id = Guid.NewGuid(), AddressLine = "789 Oak St", City = "Citytown", PostalCode = "11223", Country = "USA" }
             };
             return addresses;
         }

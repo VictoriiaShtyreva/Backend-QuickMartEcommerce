@@ -23,7 +23,6 @@ namespace Ecommerce.Service.src.DTOs
     public class CartUpdateDto
     {
         public List<CartItemUpdateDto> Items { get; set; }
-
         public CartUpdateDto()
         {
             Items = new List<CartItemUpdateDto>();

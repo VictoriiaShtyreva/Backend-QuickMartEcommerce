@@ -54,7 +54,7 @@ namespace Ecommerce.Controller.src.Controllers
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<IEnumerable<OrderReadDto>>> GetOrdersByUserIdAsync(Guid userId)
+        public async Task<ActionResult<IEnumerable<OrderReadDto>>> GetOrdersByUserIdAsync([FromRoute] Guid userId)
         {
             var orders = await _orderService.GetOrdersByUserIdAsync(userId);
             return Ok(orders);
@@ -64,7 +64,7 @@ namespace Ecommerce.Controller.src.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<OrderReadDto>> CreateOrderAsync([FromBody] OrderCreateDto orderCreateDto)
+        public async Task<ActionResult<OrderReadDto>> CreateOrderAsync([FromForm] OrderCreateDto orderCreateDto)
         {
             var createdOrder = await _orderService.CreateOrderFromCartAsync(orderCreateDto);
             return CreatedAtAction(nameof(GetOrdersByUserIdAsync), new { id = createdOrder.Id }, createdOrder);

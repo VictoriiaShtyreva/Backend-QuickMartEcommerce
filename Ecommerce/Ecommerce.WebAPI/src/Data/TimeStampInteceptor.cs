@@ -8,10 +8,7 @@ namespace Ecommerce.WebAPI.src.Data
     {
         public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
         {
-            var entries = eventData.Context!.ChangeTracker.Entries(); // get all monitored entries
-
-            var addedEntries = entries.Where(e => e.State == EntityState.Added); // get all added entries
-            var modifiedEntries = entries.Where(e => e.State == EntityState.Modified); // get all modified entries
+            var entries = eventData.Context!.ChangeTracker.Entries();
 
             foreach (var entry in entries)
             {
@@ -20,16 +17,16 @@ namespace Ecommerce.WebAPI.src.Data
                     switch (entry.State)
                     {
                         case EntityState.Added:
-                            timeStamp.CreatedAt = DateTime.UtcNow; // Store all times in UTC
+                            timeStamp.CreatedAt = DateTime.UtcNow;
                             timeStamp.UpdatedAt = DateTime.UtcNow;
                             break;
                         case EntityState.Modified:
-                            timeStamp.UpdatedAt = DateTime.UtcNow; // Update with current UTC time
+                            timeStamp.UpdatedAt = DateTime.UtcNow;
                             break;
                     }
+                    Console.WriteLine($"Entity {entry.Entity.GetType().Name}: CreatedAt = {timeStamp.CreatedAt}, UpdatedAt = {timeStamp.UpdatedAt}");
                 }
             }
-
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
     }

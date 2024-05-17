@@ -66,6 +66,7 @@ options =>
 options.UseNpgsql(dataSource)
         .UseSnakeCaseNamingConvention()
         .UseLazyLoadingProxies()
+        .EnableSensitiveDataLogging()
         .EnableDetailedErrors()
         .AddInterceptors(new TimeStampInteceptor())
 );
@@ -128,7 +129,6 @@ var cloudinaryAccount = new Account(
 var cloudinary = new Cloudinary(cloudinaryAccount);
 builder.Services.AddSingleton(cloudinary);
 
-
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
@@ -150,14 +150,13 @@ builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerOrderHandler>()
 builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerReviewHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerAccountHandler>();
 
-// Add authorization instructions
-builder.Services.AddAuthorizationBuilder()
-     // Add authorization instructions
-     .AddPolicy("AdminOrOwnerAccount", policy => policy.Requirements.Add(new AdminOrOwnerAccountRequirement()))
-     // Add authorization instructions
-     .AddPolicy("AdminOrOwnerOrder", policy => policy.Requirements.Add(new AdminOrOwnerOrderRequirement()))
-     // Add authorization instructions
-     .AddPolicy("AdminOrOwnerReview", policy => policy.Requirements.Add(new AdminOrOwnerReviewRequirement()));
+// config authorization
+builder.Services.AddAuthorization(policy =>
+{
+    policy.AddPolicy("AdminOrOwnerOrder", policy => policy.Requirements.Add(new AdminOrOwnerOrderRequirement()));
+    policy.AddPolicy("AdminOrOwnerReview", policy => policy.Requirements.Add(new AdminOrOwnerReviewRequirement()));
+    policy.AddPolicy("AdminOrOwnerAccount", policy => policy.Requirements.Add(new AdminOrOwnerAccountRequirement()));
+});
 
 var app = builder.Build();
 

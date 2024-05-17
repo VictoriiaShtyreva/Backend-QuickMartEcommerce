@@ -83,7 +83,9 @@ namespace Ecommerce.WebAPI.src.Repositories
 
         public async Task<Cart?> UpdateAsync(Cart entity)
         {
-            _carts.Update(entity);
+            var existingCart = await _carts.FindAsync(entity.Id) ?? throw AppException.NotFound();
+            _context.Entry(existingCart).CurrentValues.SetValues(entity);
+            entity.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return entity;
         }

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Ardalis.GuardClauses;
 
 namespace Ecommerce.Core.src.Entities.OrderAggregate
@@ -6,19 +7,21 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
     {
         public string? AddressLine { get; set; }
         public string? City { get; set; }
-        public int PostalCode { get; set; }
+
+        [RegularExpression("^[0-9]{5}$", ErrorMessage = "Invalid postal code")]
+        public string? PostalCode { get; set; }
         public string? Country { get; set; }
 
         public Address()
         {
         }
 
-        public Address(string addressLine, string city, int postalCode, string country)
+        public Address(string addressLine, string city, string postalCode, string country)
         {
             Id = Guid.NewGuid();
             AddressLine = Guard.Against.NullOrWhiteSpace(addressLine, nameof(addressLine), "Address line is required.");
             City = Guard.Against.NullOrWhiteSpace(city, nameof(city), "City is required.");
-            PostalCode = Guard.Against.Negative(postalCode, nameof(postalCode), "Postal code must be a positive number.");
+            PostalCode = Guard.Against.NullOrWhiteSpace(postalCode, nameof(postalCode), "Postal code is required");
             Country = Guard.Against.NullOrWhiteSpace(country, nameof(country), "Country is required.");
         }
     }

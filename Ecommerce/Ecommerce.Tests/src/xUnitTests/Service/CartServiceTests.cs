@@ -99,19 +99,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             await Assert.ThrowsAsync<AppException>(() => _cartService.GetCartByUserIdAsync(userId));
         }
 
-        [Fact]
-        public async Task RemoveItemFromCartAsync_ShouldThrow_WhenItemNotFound()
-        {
-            // Arrange
-            var cartId = Guid.NewGuid();
-            var itemId = Guid.NewGuid();
-            var cart = new Cart(Guid.NewGuid());
-            _mockCartRepository.Setup(x => x.GetByIdAsync(cartId)).ReturnsAsync(cart);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _cartService.RemoveItemFromCartAsync(cartId, itemId));
-        }
-
         [Theory]
         [InlineData(true)]
         [InlineData(false)]

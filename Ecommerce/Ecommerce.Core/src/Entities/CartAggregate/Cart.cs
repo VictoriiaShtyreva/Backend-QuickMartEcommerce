@@ -8,50 +8,58 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
         public virtual User? User { get; set; }
         private readonly HashSet<CartItem>? _items;
         public virtual ICollection<CartItem>? CartItems => _items;
-        public Cart() { }
+        public Cart()
+        { }
         public Cart(Guid userId)
         {
             Guard.Against.Default(userId, nameof(userId));
             Id = Guid.NewGuid();
             UserId = userId;
             _items = new HashSet<CartItem>(new CartItemComparer());
+            CreatedAt = DateTime.UtcNow;
+            UpdatedAt = DateTime.UtcNow;
         }
 
         // Method for add item to cart
-        public void AddItem(Guid productId, int quantity)
+        public void AddItem(CartItem cartItem)
         {
-            Guard.Against.NegativeOrZero(quantity, nameof(quantity));
+            Guard.Against.Null(cartItem, nameof(cartItem));
+            Guard.Against.NegativeOrZero(cartItem.Quantity, nameof(cartItem.Quantity));
 
-            var existingItem = _items?.FirstOrDefault(i => i.ProductId == productId);
+            var existingItem = _items?.FirstOrDefault(i => i.ProductId == cartItem.ProductId);
             if (existingItem != null)
             {
-                existingItem.AddQuantity(quantity);
+                existingItem.AddQuantity(cartItem.Quantity);
             }
             else
             {
-                _items?.Add(new CartItem(this.Id, productId, quantity));
+                _items?.Add(cartItem);
             }
+            UpdatedAt = DateTime.UtcNow;
         }
 
         // Method to remove an item from the cart
-        public void RemoveItem(Guid productId, int quantity)
+        public void RemoveItem(CartItem cartItem)
         {
-            Guard.Against.Default(productId, nameof(productId));
-            Guard.Against.NegativeOrZero(quantity, nameof(quantity));
+            Guard.Against.Null(cartItem, nameof(cartItem));
+            Guard.Against.Default(cartItem.ProductId, nameof(cartItem.ProductId));
+            Guard.Against.NegativeOrZero(cartItem.Quantity, nameof(cartItem.Quantity));
 
-            var existingItem = _items?.FirstOrDefault(i => i.ProductId == productId);
+            var existingItem = _items?.FirstOrDefault(i => i.ProductId == cartItem.ProductId);
             if (existingItem == null) return;
-            existingItem.ReduceQuantity(quantity);
+            existingItem.ReduceQuantity(cartItem.Quantity);
             if (existingItem.Quantity == 0)
             {
                 _items?.Remove(existingItem);
             }
+            UpdatedAt = DateTime.UtcNow; // Update timestamp
         }
 
         // Method to clear the cart
         public void ClearCart()
         {
             _items?.Clear();
+            UpdatedAt = DateTime.UtcNow; // Update timestamp
         }
 
         // A custom equality comparer for CartItem to define uniqueness in the HashSet
