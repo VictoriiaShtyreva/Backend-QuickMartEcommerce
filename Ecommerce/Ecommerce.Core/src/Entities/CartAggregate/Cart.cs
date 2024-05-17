@@ -16,8 +16,6 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
             Id = Guid.NewGuid();
             UserId = userId;
             _items = new HashSet<CartItem>(new CartItemComparer());
-            CreatedAt = DateTime.UtcNow;
-            UpdatedAt = DateTime.UtcNow;
         }
 
         // Method for add item to cart
@@ -41,7 +39,6 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
                 };
                 _items?.Add(cartItem);
             }
-            UpdatedAt = DateTime.UtcNow;
         }
 
 
@@ -59,14 +56,12 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
             {
                 _items?.Remove(existingItem);
             }
-            UpdatedAt = DateTime.UtcNow;
         }
 
         // Method to clear the cart
         public void ClearCart()
         {
             _items?.Clear();
-            UpdatedAt = DateTime.UtcNow;
         }
 
         // A custom equality comparer for CartItem to define uniqueness in the HashSet

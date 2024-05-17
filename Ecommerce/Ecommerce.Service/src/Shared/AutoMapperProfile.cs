@@ -22,17 +22,13 @@ namespace Ecommerce.Service.src.Shared
             // Cart mappings
             CreateMap<Cart, CartReadDto>()
                 .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.CartItems));
-            CreateMap<CartCreateDto, Cart>()
-                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+            CreateMap<CartCreateDto, Cart>();
             CreateMap<CartUpdateDto, Cart>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
 
             // CartItem mappings
             CreateMap<CartItem, CartItemReadDto>();
-            CreateMap<CartItemCreateDto, CartItem>()
-                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
-                .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
+            CreateMap<CartItemCreateDto, CartItem>();
             CreateMap<CartItemUpdateDto, CartItem>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
 

@@ -99,9 +99,9 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         public async Task CreateOrderFromCartAsync_ThrowsWhenCartIsInvalid(bool isCartPresent, int itemCount)
         {
             var userId = Guid.NewGuid();
-            Cart cart = isCartPresent ? CreateCartWithItems(userId, itemCount) : null!;
+            Cart? cart = isCartPresent ? CreateCartWithItems(userId, itemCount) : null;
 
-            _mockCartRepository.Setup(x => x.GetCartByUserIdAsync(userId)).ReturnsAsync(cart);
+            _mockCartRepository.Setup(x => x.GetCartByUserIdAsync(userId))!.ReturnsAsync(cart);
             var orderCreateDto = new OrderCreateDto
             {
                 UserId = userId,
@@ -124,7 +124,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
                     {
                         UserId = userId,
                         ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
-                        OrderItems = new System.Collections.Generic.List<OrderItemReadDto>()
+                        OrderItems = new List<OrderItemReadDto>()
                     });
 
                 var result = await _service.CreateOrderFromCartAsync(orderCreateDto);
@@ -147,7 +147,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
                     Description = "Test Description"
                 };
                 _mockProductRepository.Setup(p => p.GetByIdAsync(productId)).ReturnsAsync(product);
-                cart.AddItem(new CartItem(cart.Id, productId, i + 1));
+                cart.AddProduct(product, i + 1);
             }
             return cart;
         }

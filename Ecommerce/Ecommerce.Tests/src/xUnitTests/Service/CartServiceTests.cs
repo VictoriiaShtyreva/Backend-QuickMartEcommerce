@@ -14,38 +14,71 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
     {
         private readonly CartService _cartService;
         private readonly Mock<ICartRepository> _mockCartRepository = new Mock<ICartRepository>();
-        private readonly Mock<IProductRepository> _mockProductRepository = new Mock<IProductRepository>();
-        private readonly Mock<IUnitOfWork> _mockUnitOfWork = new Mock<IUnitOfWork>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
         private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
 
         public CartServiceTests()
         {
-            _cartService = new CartService(_mockCartRepository.Object, _mockMapper.Object, _mockUnitOfWork.Object, _mockProductRepository.Object, _mockCache.Object);
+            _cartService = new CartService(_mockCartRepository.Object, _mockMapper.Object, _mockCache.Object);
         }
 
         [Theory]
-        [InlineData(5)]
-        public async Task AddProductToCartAsync_ShouldHandleQuantityCorrectly(int quantity)
+        [InlineData("d0b2e9c7-83f4-4f7e-8b2b-3fabc4d56d1e", "62f8d962-7d6b-4c18-b742-1b3c47d6d49f", 2)]
+        public async Task AddProductToCartAsync_ShouldAddProductAndInvalidateCache(Guid userId, Guid productId, int quantity)
         {
-            var userId = Guid.NewGuid();
-            var productId = Guid.NewGuid();
-            var product = new Product { Id = productId, Inventory = 5 };
+            // Arrange
+            var cartItem = new CartItem(Guid.NewGuid(), productId, quantity);
+            _mockCartRepository.Setup(repo => repo.AddProductToCartAsync(userId, productId, quantity)).ReturnsAsync(cartItem);
+            _mockCache.Setup(cache => cache.Remove(It.IsAny<object>()));
 
-            _mockProductRepository.Setup(x => x.GetByIdAsync(productId)).ReturnsAsync(product);
-            _mockCartRepository.Setup(x => x.GetCartByUserIdAsync(userId)).ReturnsAsync(new Cart(userId));
+            // Act
+            var result = await _cartService.AddProductToCartAsync(userId, productId, quantity);
 
-            if (quantity <= product.Inventory)
-            {
-                await _cartService.AddProductToCartAsync(userId, productId, quantity);
-                Assert.True(product.Inventory == 5 - quantity);
-            }
-            else
-            {
-                await Assert.ThrowsAsync<InvalidOperationException>(() => _cartService.AddProductToCartAsync(userId, productId, quantity));
-            }
+            // Assert
+            Assert.Equal(cartItem, result);
+            _mockCache.Verify(cache => cache.Remove($"Cart-{userId}"), Times.Once);
+            _mockCartRepository.Verify(repo => repo.AddProductToCartAsync(userId, productId, quantity), Times.Once);
         }
 
+        [Theory]
+        [InlineData("d0b2e9c7-83f4-4f7e-8b2b-3fabc4d56d1e")]
+        public async Task ClearCartAsync_ShouldClearCartAndInvalidateCache(Guid cartId)
+        {
+            // Arrange
+            var cart = new Cart(cartId);
+            _mockCartRepository.Setup(repo => repo.GetByIdAsync(cartId)).ReturnsAsync(cart);
+            _mockCache.Setup(cache => cache.Remove(It.IsAny<object>()));
+
+            // Act
+            var result = await _cartService.ClearCartAsync(cartId);
+
+            // Assert
+            Assert.True(result);
+            _mockCartRepository.Verify(repo => repo.GetByIdAsync(cartId), Times.Once);
+            _mockCartRepository.Verify(repo => repo.UpdateAsync(cart), Times.Once);
+            _mockCache.Verify(cache => cache.Remove($"Cart-{cart.UserId}"), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("d0b2e9c7-83f4-4f7e-8b2b-3fabc4d56d1e", "d0b2e9c7-83f4-4f7e-8b2b-3fabc4d56d1e", 2)]
+        public async Task RemoveItemFromCartAsync_ShouldRemoveItemAndInvalidateCache(Guid cartId, Guid productId, int quantity)
+        {
+            // Arrange
+            var cartItem = new CartItem(cartId, productId, quantity);
+            var cart = new Cart(cartId);
+            cart.AddProduct(new Product { Id = productId }, quantity);
+            _mockCartRepository.Setup(repo => repo.GetByIdAsync(cartId)).ReturnsAsync(cart);
+            _mockCache.Setup(cache => cache.Remove(It.IsAny<object>()));
+
+            // Act
+            var result = await _cartService.RemoveItemFromCartAsync(cartId, cartItem);
+
+            // Assert
+            Assert.True(result);
+            _mockCartRepository.Verify(repo => repo.GetByIdAsync(cartId), Times.Once);
+            _mockCartRepository.Verify(repo => repo.UpdateAsync(cart), Times.Once);
+            _mockCache.Verify(cache => cache.Remove($"Cart-{cart.UserId}"), Times.Once);
+        }
         [Fact]
         public async Task ClearCartAsync_ShouldClearCart_WhenCartExists()
         {
@@ -72,20 +105,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
 
             // Act & Assert
             await Assert.ThrowsAsync<AppException>(() => _cartService.ClearCartAsync(cartId));
-        }
-
-        [Fact]
-        public async Task GetCartByUserIdAsync_ShouldReturnCart()
-        {
-            var userId = Guid.NewGuid();
-            var cart = new Cart { UserId = userId };
-
-            _mockCartRepository.Setup(x => x.GetCartByUserIdAsync(userId)).ReturnsAsync(cart);
-            _mockMapper.Setup(m => m.Map<CartReadDto>(It.IsAny<Cart>())).Returns(new CartReadDto());
-
-            var result = await _cartService.GetCartByUserIdAsync(userId);
-
-            Assert.NotNull(result);
         }
 
         [Fact]
@@ -143,5 +162,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             // Act & Assert
             await Assert.ThrowsAsync<AppException>(() => _cartService.UpdateOneAsync(cartId, new CartUpdateDto()));
         }
+
+
     }
 }

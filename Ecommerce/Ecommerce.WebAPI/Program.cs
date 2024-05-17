@@ -26,6 +26,7 @@ using Npgsql;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
+
 // add automapper dependency injection
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
@@ -36,7 +37,12 @@ builder.Services.Configure<CloudinarySettings>(builder.Configuration.GetSection(
 builder.Services.AddMemoryCache();
 
 // Add all controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers(
+    Options =>
+    {
+        Options.SuppressAsyncSuffixInActionNames = false;
+    }
+);
 builder.Services.AddEndpointsApiExplorer();
 
 //Add authorization for Swagger

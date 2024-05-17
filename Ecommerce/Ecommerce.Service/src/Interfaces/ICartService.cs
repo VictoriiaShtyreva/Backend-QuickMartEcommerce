@@ -8,7 +8,7 @@ namespace Ecommerce.Service.src.Interfaces
     {
         Task<CartReadDto> GetCartByUserIdAsync(Guid userId);
 
-        Task<CartItem> AddProductToCartAsync(Guid userId, Guid productId, int quantity);
+        Task<CartItemCreateDto> AddProductToCartAsync(Guid userId, Guid productId, int quantity);
 
         Task<bool> RemoveItemFromCartAsync(Guid cartId, CartItem cartItem);
 

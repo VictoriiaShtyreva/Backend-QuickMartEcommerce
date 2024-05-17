@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ecommerce.Controller.src.Controllers
 {
     [ApiController]
-    [Route("api/orders")]
+    [Route("api/v1/orders")]
     public class OrderController : ControllerBase
     {
         private readonly IOrderService _orderService;
@@ -26,6 +26,7 @@ namespace Ecommerce.Controller.src.Controllers
 
         [HttpGet("{orderId}")]
         [Authorize]
+        [ActionName(nameof(GetOrderAsync))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<OrderReadDto>> GetOrderAsync([FromRoute] Guid orderId)
@@ -62,12 +63,13 @@ namespace Ecommerce.Controller.src.Controllers
 
         [HttpPost()]
         [Authorize]
+        [ActionName(nameof(CreateOrderAsync))]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<OrderReadDto>> CreateOrderAsync([FromBody] OrderCreateDto orderCreateDto)
         {
             var createdOrder = await _orderService.CreateOrderFromCartAsync(orderCreateDto);
-            return CreatedAtAction(nameof(GetOrdersByUserIdAsync), createdOrder);
+            return CreatedAtAction(nameof(GetOrderAsync), new { orderId = createdOrder.Id }, createdOrder);
         }
 
     }

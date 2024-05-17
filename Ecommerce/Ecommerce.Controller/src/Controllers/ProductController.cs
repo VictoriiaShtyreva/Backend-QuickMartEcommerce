@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ecommerce.Controller.src.Controllers
 {
     [ApiController]
-    [Route("api/products")]
+    [Route("api/v1/products")]
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;

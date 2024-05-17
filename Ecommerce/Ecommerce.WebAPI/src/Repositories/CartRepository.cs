@@ -1,4 +1,5 @@
 using Ecommerce.Core.src.Common;
+using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
@@ -21,6 +22,64 @@ namespace Ecommerce.WebAPI.src.Repositories
             _carts.Add(entity);
             await _context.SaveChangesAsync();
             return entity;
+        }
+
+        public async Task<CartItem> AddProductToCartAsync(Guid userId, Guid productId, int quantity)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var product = await FetchProductAsync(productId, quantity);
+                var cart = await FetchOrCreateCartAsync(userId);
+
+                cart.AddProduct(product, quantity);
+                UpdateProductInventory(product, quantity);
+
+                await SaveChangesAsync(cart, product);
+                await transaction.CommitAsync();
+
+                return cart.CartItems?.FirstOrDefault(i => i.ProductId == productId) ?? throw new InvalidOperationException("Failed to add product to cart.");
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                await transaction.RollbackAsync();
+                throw new ApplicationException("Failed to add product to cart due to a concurrency issue.", ex);
+            }
+        }
+
+        private async Task<Product> FetchProductAsync(Guid productId, int quantity)
+        {
+            var product = await _context.Products.FindAsync(productId);
+            if (product == null || product.Inventory < quantity)
+            {
+                throw new InvalidOperationException("Product is unavailable or inventory is insufficient.");
+            }
+            return product;
+        }
+
+        private async Task<Cart> FetchOrCreateCartAsync(Guid userId)
+        {
+            var cart = await GetCartByUserIdAsync(userId);
+            if (cart == null)
+            {
+                cart = new Cart(userId);
+                _carts.Add(cart);
+                await _context.SaveChangesAsync();
+            }
+            return cart;
+        }
+
+        private void UpdateProductInventory(Product product, int quantity)
+        {
+            product.Inventory -= quantity;
+            _context.Products.Update(product);
+        }
+
+        private async Task SaveChangesAsync(Cart cart, Product product)
+        {
+            _carts.Update(cart);
+            _context.Products.Update(product);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<bool> DeleteAsync(Guid id)
@@ -87,60 +146,6 @@ namespace Ecommerce.WebAPI.src.Repositories
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
             return entity;
-        }
-
-        public async Task<CartItem> AddProductToCartAsync(Guid userId, Guid productId, int quantity)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                // Fetch the product and check inventory
-                var product = await _context.Products.FindAsync(productId);
-                if (product == null || product.Inventory < quantity)
-                {
-                    throw new InvalidOperationException("Product is unavailable or inventory is insufficient.");
-                }
-                // Fetch the cart
-                var cart = await GetCartByUserIdAsync(userId);
-                if (cart == null)
-                {
-                    cart = new Cart(userId);
-                    _carts.Add(cart);
-                    await _context.SaveChangesAsync();
-                }
-                // Add item to cart
-                var cartItem = cart.CartItems?.FirstOrDefault(i => i.ProductId == productId);
-                if (cartItem == null)
-                {
-                    cartItem = new CartItem(cart.Id, productId, quantity)
-                    {
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    cart.CartItems?.Add(cartItem);
-                }
-                else
-                {
-                    cartItem.AddQuantity(quantity);
-                    cartItem.UpdatedAt = DateTime.UtcNow;
-                    _context.Entry(cartItem).State = EntityState.Modified;
-                }
-                // Decrease product inventory
-                product.Inventory -= quantity;
-                _context.Products.Update(product);
-                cart.UpdatedAt = DateTime.UtcNow;
-                // Update the cart
-                _carts.Update(cart);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                // Return the newly added cart item
-                return cartItem!;
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                await transaction.RollbackAsync();
-                throw new ApplicationException("Failed to add product to cart due to a concurrency issue.", ex);
-            }
         }
 
         public async Task<bool> ExistsAsync(Cart entity)

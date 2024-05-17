@@ -20,11 +20,11 @@ namespace Ecommerce.Service.src.Services
 
         }
 
-        public async Task<CartItem> AddProductToCartAsync(Guid userId, Guid productId, int quantity)
+        public async Task<CartItemCreateDto> AddProductToCartAsync(Guid userId, Guid productId, int quantity)
         {
             var cartItem = await _cartRepository.AddProductToCartAsync(userId, productId, quantity);
             InvalidateCacheForCart(userId);
-            return cartItem;
+            return _mapper.Map<CartItemCreateDto>(cartItem);
         }
 
         public async Task<bool> ClearCartAsync(Guid cartId)

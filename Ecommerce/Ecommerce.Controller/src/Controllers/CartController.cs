@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ecommerce.Controller.src.Controllers
 {
     [ApiController]
-    [Route("api/carts")]
+    [Route("api/v1/carts")]
     public class CartController : ControllerBase
     {
         private readonly ICartService _cartService;
@@ -20,7 +20,7 @@ namespace Ecommerce.Controller.src.Controllers
             _authorizationService = authorizationService;
         }
 
-        [HttpGet("users/{userId}")]
+        [HttpGet("{userId}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -35,22 +35,23 @@ namespace Ecommerce.Controller.src.Controllers
             return Ok(cart);
         }
 
-        [HttpPost("users/{userId}")]
+        [HttpPost("{userId}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<ActionResult<CartItemReadDto>> AddProductToCartAsync([FromRoute] Guid userId, [FromBody] CartItemCreateDto addProductDto)
+        public async Task<ActionResult<CartItem>> AddProductToCartAsync([FromRoute] Guid userId, [FromBody] CartItemCreateDto cartItemDto)
         {
             var authorizationResult = await _authorizationService.AuthorizeAsync(User, new UserReadDto { Id = userId }, "AdminOrOwnerAccount");
             if (!authorizationResult.Succeeded)
             {
                 return Forbid();
             }
-            var cartItem = await _cartService.AddProductToCartAsync(userId, addProductDto.ProductId, addProductDto.Quantity);
+            var cartItem = await _cartService.AddProductToCartAsync(userId, cartItemDto.ProductId, cartItemDto.Quantity);
             return Ok(cartItem);
         }
 
-        [HttpDelete("users/{userId}/items/{itemId}")]
+
+        [HttpDelete("{userId}/cartItems/{itemId}")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -72,7 +73,7 @@ namespace Ecommerce.Controller.src.Controllers
             return Ok();
         }
 
-        [HttpPost("users/{userId}/clear")]
+        [HttpPost("{userId}/remove")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
