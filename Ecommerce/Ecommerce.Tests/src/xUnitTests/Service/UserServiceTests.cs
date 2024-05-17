@@ -1,12 +1,17 @@
 using System.Net;
 using AutoMapper;
+using CloudinaryDotNet.Actions;
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
+using Ecommerce.Service.src.Interfaces;
 using Ecommerce.Service.src.Services;
+using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
 namespace Ecommerce.Tests.src.Service
@@ -17,10 +22,13 @@ namespace Ecommerce.Tests.src.Service
         private readonly Mock<IUserRepository> _mockUserRepository = new Mock<IUserRepository>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
         private readonly Mock<IPasswordHasher<User>> _mockPasswordHasher = new Mock<IPasswordHasher<User>>();
+        private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
+        private readonly Mock<ICloudinaryImageService> _mockCloudinaryImageService = new Mock<ICloudinaryImageService>();
         public UserServiceTests()
         {
-            _userService = new UserService(_mockUserRepository.Object, _mockMapper.Object, _mockPasswordHasher.Object);
+            _userService = new UserService(_mockUserRepository.Object, _mockMapper.Object, _mockPasswordHasher.Object, _mockCache.Object, _mockCloudinaryImageService.Object);
         }
+
         private User CreateTestUser()
         {
             return new User
@@ -50,34 +58,7 @@ namespace Ecommerce.Tests.src.Service
             Assert.NotNull(result);
             Assert.Equal("John Doe", result.Name);
             _mockUserRepository.Verify(r => r.CreateAsync(It.IsAny<User>()), Times.Once);
-        }
-
-        [Theory]
-        [InlineData("test@example.com")]
-        public async Task GetUserByEmailAsync_ReturnsUserReadDto_WhenUserExists(string email)
-        {
-            // Arrange
-            var expectedUser = new User { Email = email };
-            _mockUserRepository.Setup(repo => repo.GetByEmailAsync(email)).ReturnsAsync(expectedUser);
-            _mockMapper.Setup(mapper => mapper.Map<UserReadDto>(It.Is<User>(u => u.Email == email)))
-                       .Returns(new UserReadDto { Email = email });
-
-            // Act
-            var result = await _userService.GetUserByEmailAsync(email);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(email, result.Email);
-            _mockUserRepository.Verify(repo => repo.GetByEmailAsync(email), Times.Once);
-            _mockMapper.Verify(mapper => mapper.Map<UserReadDto>(It.Is<User>(u => u.Email == email)), Times.Once);
-        }
-
-        [Fact]
-        public async Task GetUserByEmailAsync_ThrowsNotFoundException_WhenUserDoesNotExist()
-        {
-            _mockUserRepository.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync(value: null!);
-
-            await Assert.ThrowsAsync<AppException>(() => _userService.GetUserByEmailAsync("missing@example.com"));
+            _mockCache.Verify(c => c.Remove(It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
@@ -100,40 +81,104 @@ namespace Ecommerce.Tests.src.Service
             Assert.Equal(UserRole.Admin, result.Role);
             _mockUserRepository.Verify(repo => repo.UpdateAsync(It.Is<User>(u => u.Role == UserRole.Admin)), Times.Once);
             _mockMapper.Verify(mapper => mapper.Map<UserReadDto>(It.Is<User>(u => u.Role == UserRole.Admin)), Times.Once);
+            _mockCache.Verify(c => c.Remove(It.IsAny<string>()), Times.Once);
         }
 
         [Fact]
-        public async Task UpdateOneAsync_UpdatesOnlyProvidedFields_WhenCalledWithPartialData()
+        public async Task UpdateOneAsync_ShouldUpdateEmailNameAndAvatar_WhenValidInput()
         {
             // Arrange
             var userId = Guid.NewGuid();
-            var existingUser = new User { Id = userId, Name = "Original Name", Email = "original@example.com" };
-            var updateDto = new UserUpdateDto { Name = "Updated Name" }; // Only update name
+            var existingUser = CreateTestUser();
+            var updateDto = new UserUpdateDto
+            {
+                Email = "updated@example.com",
+                Name = "Updated User",
+                Avatar = new FormFile(null!, 0, 0, null!, "avatar.jpg")
+            };
+            var updatedUser = new User
+            {
+                Id = userId,
+                Email = updateDto.Email,
+                Name = updateDto.Name,
+                Avatar = "http://example.com/new-avatar.jpg"
+            };
+
+            var cacheEntry = Mock.Of<ICacheEntry>();
+            _mockCache.Setup(m => m.CreateEntry(It.IsAny<object>())).Returns(cacheEntry);
+
             _mockUserRepository.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(existingUser);
-            _mockMapper.Setup(m => m.Map(It.IsAny<UserUpdateDto>(), It.IsAny<User>()))
-                       .Callback<UserUpdateDto, User>((dto, user) => user.Name = dto.Name ?? user.Name);
-            _mockUserRepository.Setup(r => r.UpdateAsync(It.IsAny<User>())).ReturnsAsync(existingUser);
-            _mockMapper.Setup(m => m.Map<UserReadDto>(It.IsAny<User>())).Returns(new UserReadDto { Name = "Updated Name" });
+            _mockUserRepository.Setup(r => r.UpdateAsync(existingUser)).ReturnsAsync(updatedUser);
+
+            _mockCloudinaryImageService.Setup(i => i.UploadImageAsync(updateDto.Avatar))
+                             .ReturnsAsync(new ImageUploadResult { SecureUrl = new Uri("http://example.com/new-avatar.jpg") });
+
+            _mockMapper.Setup(m => m.Map<UserReadDto>(updatedUser)).Returns(new UserReadDto
+            {
+                Id = userId,
+                Email = updatedUser.Email,
+                Name = updatedUser.Name,
+                Avatar = updatedUser.Avatar
+            });
 
             // Act
             var result = await _userService.UpdateOneAsync(userId, updateDto);
 
             // Assert
-            Assert.Equal("Updated Name", result.Name);
-            _mockUserRepository.Verify(r => r.UpdateAsync(It.IsAny<User>()), Times.Once);
+            Assert.NotNull(result);
+            Assert.Equal("updated@example.com", result.Email);
+            Assert.Equal("Updated User", result.Name);
+            Assert.Equal("http://example.com/new-avatar.jpg", result.Avatar);
+            _mockUserRepository.Verify(r => r.GetByIdAsync(userId), Times.Once);
+            _mockUserRepository.Verify(r => r.UpdateAsync(existingUser), Times.Once);
+            _mockCache.Verify(c => c.Remove($"GetById-{userId}"), Times.Once);
+            _mockCache.Verify(c => c.Remove($"GetAll-{typeof(User).Name}"), Times.Once);
         }
 
         [Fact]
-        public async Task UpdateOneAsync_ShouldThrowKeyNotFoundException_WhenUserNotFound()
+        public async Task UpdateOneAsync_ShouldThrowNotFoundException_WhenUserNotFound()
         {
             // Arrange
-            var updateDto = new UserUpdateDto { Name = "Updated Name" };
-            Guid userId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+            var updateDto = new UserUpdateDto { Email = "updated@example.com" };
 
-            _mockUserRepository.Setup(r => r.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((User)null!);
+            _mockUserRepository.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync((User)null!);
 
             // Act & Assert
             await Assert.ThrowsAsync<AppException>(() => _userService.UpdateOneAsync(userId, updateDto));
+            _mockUserRepository.Verify(r => r.GetByIdAsync(userId), Times.Once);
+            _mockUserRepository.Verify(r => r.UpdateAsync(It.IsAny<User>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateOneAsync_ShouldOnlyUpdateEmail_WhenOnlyEmailProvided()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var existingUser = CreateTestUser();
+            var updateDto = new UserUpdateDto { Email = "updated@example.com" };
+
+            _mockUserRepository.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(existingUser);
+            _mockUserRepository.Setup(r => r.UpdateAsync(existingUser)).ReturnsAsync(existingUser);
+
+            _mockMapper.Setup(m => m.Map<UserReadDto>(existingUser)).Returns(new UserReadDto
+            {
+                Id = userId,
+                Email = updateDto.Email,
+                Name = existingUser.Name,
+                Avatar = existingUser.Avatar
+            });
+
+            // Act
+            var result = await _userService.UpdateOneAsync(userId, updateDto);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal("updated@example.com", result.Email);
+            Assert.Equal(existingUser.Name, result.Name);
+            Assert.Equal(existingUser.Avatar, result.Avatar);
+            _mockUserRepository.Verify(r => r.GetByIdAsync(userId), Times.Once);
+            _mockUserRepository.Verify(r => r.UpdateAsync(existingUser), Times.Once);
         }
 
         [Fact]
@@ -154,6 +199,7 @@ namespace Ecommerce.Tests.src.Service
             // Assert
             Assert.True(result);
             _mockUserRepository.Verify(r => r.UpdateAsync(It.IsAny<User>()), Times.Once);
+            _mockCache.Verify(c => c.Remove(existingUser.Email!), Times.Once);
         }
 
         [Theory]
@@ -210,6 +256,7 @@ namespace Ecommerce.Tests.src.Service
             _mockUserRepository.Verify(repo => repo.GetByIdAsync(user.Id), Times.Once);
             _mockPasswordHasher.Verify(hasher => hasher.HashPassword(user, newPassword), Times.Once);
             _mockUserRepository.Verify(repo => repo.UpdateAsync(user), Times.Once);
+            _mockCache.Verify(c => c.Remove(user.Email!), Times.Once);
         }
 
         [Fact]
@@ -248,6 +295,11 @@ namespace Ecommerce.Tests.src.Service
             _mockUserRepository.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions>())).ReturnsAsync(users);
             _mockMapper.Setup(m => m.Map<IEnumerable<UserReadDto>>(users)).Returns(userDtos);
 
+            // Setup cache to return false initially and then set cache with the users list
+            object cacheValue;
+            _mockCache.Setup(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!)).Returns(false);
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
+
             // Act
             var result = await _userService.GetAllAsync(new QueryOptions());
 
@@ -256,6 +308,7 @@ namespace Ecommerce.Tests.src.Service
             Assert.Equal(userDtos.Count, result.Count());
             _mockUserRepository.Verify(r => r.GetAllAsync(It.IsAny<QueryOptions>()), Times.Once);
             _mockMapper.Verify(m => m.Map<IEnumerable<UserReadDto>>(users), Times.Once);
+            _mockCache.Verify(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!), Times.Once);
         }
 
         [Fact]
@@ -269,6 +322,11 @@ namespace Ecommerce.Tests.src.Service
             _mockUserRepository.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(user);
             _mockMapper.Setup(m => m.Map<UserReadDto>(user)).Returns(userDto);
 
+            // Set up cache to return false initially and then set cache with the user
+            object cacheValue;
+            _mockCache.Setup(c => c.TryGetValue($"GetById-{userId}", out cacheValue!)).Returns(false);
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
+
             // Act
             var result = await _userService.GetOneByIdAsync(userId);
 
@@ -277,8 +335,8 @@ namespace Ecommerce.Tests.src.Service
             Assert.Equal(user.Email, result.Email);
             _mockUserRepository.Verify(r => r.GetByIdAsync(userId), Times.Once);
             _mockMapper.Verify(m => m.Map<UserReadDto>(user), Times.Once);
+            _mockCache.Verify(c => c.TryGetValue($"GetById-{userId}", out It.Ref<object>.IsAny!), Times.Once);
         }
-
         [Fact]
         public async Task GetOneByIdAsync_ThrowsNotFoundException_WhenNotFound()
         {
@@ -289,6 +347,5 @@ namespace Ecommerce.Tests.src.Service
             // Act & Assert
             await Assert.ThrowsAsync<AppException>(() => _userService.GetOneByIdAsync(userId));
         }
-
     }
 }

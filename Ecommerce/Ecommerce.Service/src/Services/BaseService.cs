@@ -3,6 +3,7 @@ using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Ecommerce.Service.src.Services
 {
@@ -11,11 +12,15 @@ namespace Ecommerce.Service.src.Services
     {
         protected readonly IBaseRepository<TEntity, QueryOptions> _repository;
         protected readonly IMapper _mapper;
+        protected readonly IMemoryCache _cache;
+        private readonly MemoryCacheEntryOptions _cacheOptions;
 
-        public BaseService(IBaseRepository<TEntity, QueryOptions> repository, IMapper mapper)
+        public BaseService(IBaseRepository<TEntity, QueryOptions> repository, IMapper mapper, IMemoryCache cache)
         {
             _repository = repository;
             _mapper = mapper;
+            _cache = cache;
+            _cacheOptions = new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(30));
         }
         public virtual async Task<TReadDTO> CreateOneAsync(TCreateDTO createDto)
         {
@@ -25,6 +30,7 @@ namespace Ecommerce.Service.src.Services
                 throw AppException.DuplicateException();
             }
             entity = await _repository.CreateAsync(entity);
+            _cache.Remove($"GetAll-{typeof(TEntity).Name}");
             return _mapper.Map<TReadDTO>(entity);
         }
 
@@ -35,21 +41,31 @@ namespace Ecommerce.Service.src.Services
                 return false;
                 throw AppException.NotFound();
             }
+            _cache.Remove($"GetById-{id}");
+            _cache.Remove($"GetAll-{typeof(TEntity).Name}");
             return true;
         }
 
         public virtual async Task<IEnumerable<TReadDTO>> GetAllAsync(QueryOptions options)
         {
-            var entities = await _repository.GetAllAsync(options);
+            if (!_cache.TryGetValue($"GetAll-{typeof(TEntity).Name}", out IEnumerable<TEntity>? entities))
+            {
+                entities = await _repository.GetAllAsync(options);
+                _cache.Set($"GetAll-{typeof(TEntity).Name}", entities, _cacheOptions);
+            }
             return _mapper.Map<IEnumerable<TReadDTO>>(entities);
         }
 
         public virtual async Task<TReadDTO> GetOneByIdAsync(Guid id)
         {
-            var entity = await _repository.GetByIdAsync(id);
-            if (entity == null)
+            if (!_cache.TryGetValue($"GetById-{id}", out TEntity? entity))
             {
-                throw AppException.NotFound();
+                entity = await _repository.GetByIdAsync(id);
+                if (entity == null)
+                {
+                    throw AppException.NotFound();
+                }
+                _cache.Set($"GetById-{id}", entity, _cacheOptions);
             }
             return _mapper.Map<TReadDTO>(entity);
         }
@@ -71,11 +87,9 @@ namespace Ecommerce.Service.src.Services
                     entityProperty.SetValue(updateDto, propertyValue);
                 }
             }
-            if (await _repository.ExistsAsync(updatedEntity))
-            {
-                throw AppException.DuplicateException();
-            }
             var result = await _repository.UpdateAsync(updatedEntity);
+            _cache.Remove($"GetById-{id}");
+            _cache.Remove($"GetAll-{typeof(TEntity).Name}");
             return _mapper.Map<TReadDTO>(result);
         }
     }

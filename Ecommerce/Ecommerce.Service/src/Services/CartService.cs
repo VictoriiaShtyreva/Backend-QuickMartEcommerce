@@ -4,6 +4,7 @@ using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Ecommerce.Service.src.Services
 {
@@ -13,8 +14,8 @@ namespace Ecommerce.Service.src.Services
         private readonly IProductRepository _productRepository;
         private readonly IUnitOfWork _unitOfWork;
 
-        public CartService(ICartRepository cartRepository, IMapper mapper, IUnitOfWork unitOfWork, IProductRepository productRepository)
-           : base(cartRepository, mapper)
+        public CartService(ICartRepository cartRepository, IMapper mapper, IUnitOfWork unitOfWork, IProductRepository productRepository, IMemoryCache cache)
+           : base(cartRepository, mapper, cache)
         {
             _cartRepository = cartRepository;
             _productRepository = productRepository;
@@ -22,26 +23,31 @@ namespace Ecommerce.Service.src.Services
         }
         public async Task<CartItem> AddProductToCartAsync(Guid userId, Guid productId, int quantity)
         {
-            using (var transaction = _unitOfWork.BeginTransaction())
+            using (var transaction = _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
+                    // Fetch the product and check inventory
                     var product = await _productRepository.GetByIdAsync(productId);
                     if (product == null || product.Inventory < quantity)
                     {
                         throw new InvalidOperationException("Product is unavailable or inventory is insufficient.");
                     }
+                    var cart = await _cartRepository.GetCartByUserIdAsync(userId);
+                    var cartItem = new CartItem(cart.Id, productId, quantity);
+                    cart.AddItem(cartItem);
+                    // Decrease product inventory
                     product.Inventory -= quantity;
                     await _productRepository.UpdateAsync(product);
-                    var cart = await _cartRepository.GetCartByUserIdAsync(userId) ?? new Cart(userId);
-                    cart.AddItem(productId, quantity);
+                    // Update the cart
                     await _cartRepository.UpdateAsync(cart);
                     await _unitOfWork.CommitAsync();
-                    return cart.CartItems?.FirstOrDefault(ci => ci.ProductId == productId && ci.Quantity == quantity)!;
+                    // Return the newly added cart item
+                    return cartItem;
                 }
                 catch (Exception ex)
                 {
-                    _unitOfWork.Rollback();
+                    await _unitOfWork.RollbackAsync();
                     throw new ApplicationException("Failed to add product to cart.", ex);
                 }
             }
@@ -61,17 +67,12 @@ namespace Ecommerce.Service.src.Services
             return _mapper.Map<CartReadDto>(cart);
         }
 
-        public async Task<bool> RemoveItemFromCartAsync(Guid cartId, Guid itemId)
+        public async Task<bool> RemoveItemFromCartAsync(Guid cartId, CartItem cartItem)
         {
             var cart = await _cartRepository.GetByIdAsync(cartId) ?? throw AppException.NotFound();
-            if (cart.CartItems == null || cart.CartItems.Count == 0)
-            {
-                throw new InvalidOperationException("There are no items in the cart.");
-            }
-            var item = cart.CartItems.FirstOrDefault(i => i.Id == itemId) ?? throw AppException.NotFound();
-            cart.RemoveItem(item.ProductId, item.Quantity);
+            cart.RemoveItem(cartItem);
             await _cartRepository.UpdateAsync(cart);
-            return false;
+            return true;
         }
     }
 }

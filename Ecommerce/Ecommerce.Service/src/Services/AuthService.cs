@@ -1,6 +1,8 @@
+using AutoMapper;
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Interfaces;
+using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
@@ -11,18 +13,20 @@ namespace Ecommerce.Service.src.Services
         private readonly IUserRepository _userRepo;
         private readonly ITokenService _tokenService;
         private readonly IPasswordService _passwordService;
+        private readonly IMapper _mapper;
 
-        public AuthService(IUserRepository userRepository, ITokenService tokenService, IPasswordService passwordService)
+        public AuthService(IUserRepository userRepository, ITokenService tokenService, IPasswordService passwordService, IMapper mapper)
         {
             _userRepo = userRepository;
             _tokenService = tokenService;
             _passwordService = passwordService;
+            _mapper = mapper;
         }
-        public async Task<User> AuthenticateUserAsync(string token)
+        public async Task<UserReadDto> AuthenticateUserAsync(string token)
         {
             var userId = _tokenService.VerifyToken(token);
             var user = await _userRepo.GetByIdAsync(userId);
-            return user;
+            return _mapper.Map<UserReadDto>(user);
         }
 
         public async Task<string> LogInAsync(UserCredential userCredential)

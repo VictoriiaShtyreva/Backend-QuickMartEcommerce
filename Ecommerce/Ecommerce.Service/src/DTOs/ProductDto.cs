@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace Ecommerce.Service.src.DTOs
 {
     public class ProductReadDto
@@ -19,7 +21,7 @@ namespace Ecommerce.Service.src.DTOs
         public int Price { get; set; }
         public Guid CategoryId { get; set; }
         public int Inventory { get; set; }
-        public IEnumerable<string>? Images { get; set; }
+        public IEnumerable<IFormFile>? Images { get; set; }
 
     }
 
@@ -30,7 +32,7 @@ namespace Ecommerce.Service.src.DTOs
         public decimal? Price { get; set; }
         public Guid? CategoryId { get; set; }
         public int? Inventory { get; set; }
-        public IEnumerable<string>? Images { get; set; }
+        public IEnumerable<IFormFile>? Images { get; set; }
     }
 
     public class TopProducDto

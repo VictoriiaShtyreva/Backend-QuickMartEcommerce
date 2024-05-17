@@ -12,32 +12,17 @@ namespace Ecommerce.WebAPI.src.Repositories
     {
         private readonly AppDbContext _context;
         private readonly DbSet<User> _users;
-        private readonly DbSet<Cart> _carts;
         public UserRepository(AppDbContext context)
         {
             _context = context;
             _users = _context.Users;
-            _carts = _context.Carts;
         }
 
         public async Task<User> CreateAsync(User entity)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                _users.Add(entity);
-                await _context.SaveChangesAsync();
-                var cart = new Cart { UserId = entity.Id };
-                _carts.Add(cart);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return entity;
-            }
-            catch (DbUpdateException)
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
+            _users.Add(entity);
+            await _context.SaveChangesAsync();
+            return entity;
         }
 
         public async Task<bool> DeleteAsync(Guid id)

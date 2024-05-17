@@ -32,19 +32,6 @@ namespace Ecommerce.WebAPI.src.Repositories
             return true;
         }
 
-        public async Task EnsureCartsForAllUsers()
-        {
-            var usersWithoutCarts = await _context.Users
-               .Include(u => u.Cart)
-               .Where(u => u.Cart == null)
-               .ToListAsync();
-            foreach (var user in usersWithoutCarts)
-            {
-                _context.Carts.Add(new Cart { UserId = user.Id });
-            }
-            await _context.SaveChangesAsync();
-        }
-
         public async Task<IEnumerable<Cart>> GetAllAsync(QueryOptions options)
         {
             IQueryable<Cart> query = _carts.Include(c => c.CartItems!);
@@ -96,7 +83,9 @@ namespace Ecommerce.WebAPI.src.Repositories
 
         public async Task<Cart?> UpdateAsync(Cart entity)
         {
-            _carts.Update(entity);
+            var existingCart = await _carts.FindAsync(entity.Id) ?? throw AppException.NotFound();
+            _context.Entry(existingCart).CurrentValues.SetValues(entity);
+            entity.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return entity;
         }

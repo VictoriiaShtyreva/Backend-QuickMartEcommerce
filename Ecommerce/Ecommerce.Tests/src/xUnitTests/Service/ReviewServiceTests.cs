@@ -4,6 +4,7 @@ using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Services;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
 namespace Ecommerce.Tests.src.xUnitTests.Service
@@ -15,10 +16,11 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         private readonly Mock<IProductRepository> _mockProductRepository = new Mock<IProductRepository>();
         private readonly Mock<IUserRepository> _mockUserRepository = new Mock<IUserRepository>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
+        private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
 
         public ReviewServiceTests()
         {
-            _reviewService = new ReviewService(_mockReviewRepository.Object, _mockMapper.Object, _mockProductRepository.Object, _mockUserRepository.Object);
+            _reviewService = new ReviewService(_mockReviewRepository.Object, _mockMapper.Object, _mockProductRepository.Object, _mockUserRepository.Object, _mockCache.Object);
         }
 
         [Fact]
@@ -119,11 +121,16 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             var reviews = new List<Review> { new Review { Id = Guid.NewGuid() } };
             _mockReviewRepository.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions>())).ReturnsAsync(reviews);
             _mockMapper.Setup(m => m.Map<IEnumerable<ReviewReadDto>>(reviews)).Returns(reviews.Select(r => new ReviewReadDto()));
+            // Setup cache to return false initially and then set cache with the users list
+            object cacheValue;
+            _mockCache.Setup(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!)).Returns(false);
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
 
             var results = await _reviewService.GetAllAsync(new QueryOptions());
 
             Assert.NotEmpty(results);
             _mockReviewRepository.Verify(r => r.GetAllAsync(It.IsAny<QueryOptions>()), Times.Once);
+            _mockCache.Verify(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!), Times.Once);
         }
 
         [Fact]

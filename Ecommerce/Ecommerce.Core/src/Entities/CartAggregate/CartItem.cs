@@ -22,6 +22,8 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
             CartId = cartId;
             ProductId = productId;
             Quantity = quantity;
+            CreatedAt = DateTime.UtcNow;
+            UpdatedAt = DateTime.UtcNow;
         }
 
         // Method to add quantity to the cart item
@@ -29,6 +31,7 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
         {
             Guard.Against.NegativeOrZero(quantityToAdd, nameof(quantityToAdd));
             Quantity += quantityToAdd;
+            UpdatedAt = DateTime.UtcNow;
         }
 
         // Method to reduce quantity of the cart item
@@ -36,6 +39,7 @@ namespace Ecommerce.Core.src.Entities.CartAggregate
         {
             Guard.Against.Negative(quantityToReduce, nameof(quantityToReduce));
             Quantity -= quantityToReduce;
+            UpdatedAt = DateTime.UtcNow;
         }
 
     }

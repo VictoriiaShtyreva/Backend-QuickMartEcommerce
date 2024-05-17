@@ -24,7 +24,7 @@ namespace Ecommerce.Core.src.Entities
             Name = Guard.Against.NullOrWhiteSpace(name, nameof(Name));
             Email = Guard.Against.NullOrWhiteSpace(email, nameof(Email));
             Password = password;
-            Avatar = Guard.Against.InvalidInput(avatar, nameof(avatar), uri => Uri.IsWellFormedUriString(uri, UriKind.Absolute), "Image URL must be a valid URL.");
+            Avatar = avatar;
             Role = Guard.Against.Null(role, nameof(Role));
         }
     }

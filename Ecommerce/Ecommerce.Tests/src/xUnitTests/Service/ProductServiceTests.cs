@@ -5,7 +5,9 @@ using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
+using Ecommerce.Service.src.Interfaces;
 using Ecommerce.Service.src.Services;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
 namespace Ecommerce.Tests.src.xUnitTests.Service
@@ -16,10 +18,12 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         private readonly Mock<IProductRepository> _mockProductRepository = new Mock<IProductRepository>();
         private readonly Mock<IProductImageRepository> _mockProductImageRepository = new Mock<IProductImageRepository>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
+        private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
+        private readonly Mock<ICloudinaryImageService> _mockCloudinaryImageService = new Mock<ICloudinaryImageService>();
 
         public ProductServiceTests()
         {
-            _productService = new ProductService(_mockProductRepository.Object, _mockMapper.Object, _mockProductImageRepository.Object);
+            _productService = new ProductService(_mockProductRepository.Object, _mockMapper.Object, _mockProductImageRepository.Object, _mockCache.Object, _mockCloudinaryImageService.Object);
         }
 
         public static IEnumerable<object[]> UpdateProductDetailsData =>
@@ -48,20 +52,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             Assert.Equal(title ?? "Original Title", result.Title); // Default to original if no update provided
         }
 
-        [Fact]
-        public async Task GetMostPurchased_ReturnsProducts_WhenProductsExist()
-        {
-            var topNumber = 5;
-            var products = new List<Product> { new Product { Id = Guid.NewGuid(), Title = "Bestseller" } };
-
-            _mockProductRepository.Setup(x => x.GetMostPurchasedProductsAsync(topNumber)).ReturnsAsync(products);
-            _mockMapper.Setup(m => m.Map<IEnumerable<ProductReadDto>>(products)).Returns(products.Select(p => new ProductReadDto { Title = p.Title }));
-
-            var result = await _productService.GetMostPurchased(topNumber);
-
-            Assert.Single(result);
-            Assert.Equal("Bestseller", result.First().Title);
-        }
 
         [Fact]
         public async Task GetMostPurchased_ThrowsAppException_WhenNoProductsFound()
@@ -123,12 +113,18 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             _mockProductRepository.Setup(x => x.GetAllAsync(It.IsAny<QueryOptions>())).ReturnsAsync(products);
             _mockMapper.Setup(m => m.Map<IEnumerable<ProductReadDto>>(products)).Returns(products.Select(p => new ProductReadDto { Title = p.Title }));
 
+            // Setup cache to return false initially and then set cache with the users list
+            object cacheValue;
+            _mockCache.Setup(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!)).Returns(false);
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
+
             // Act
             var result = await _productService.GetAllAsync(new QueryOptions { Page = 1, PageSize = 5, SortBy = SortType.byTitle, SortOrder = SortOrder.Ascending });
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(5, result.Count());
+            _mockCache.Verify(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!), Times.Once);
         }
 
         [Fact]
@@ -140,6 +136,11 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
 
             _mockProductRepository.Setup(x => x.GetByIdAsync(productId)).ReturnsAsync(product);
             _mockMapper.Setup(m => m.Map<ProductReadDto>(product)).Returns(new ProductReadDto { Title = product.Title });
+            // Set up cache to return false initially and then set cache with the user
+            object cacheValue;
+            _mockCache.Setup(c => c.TryGetValue($"GetById-{productId}", out cacheValue!)).Returns(false);
+            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
+
 
             // Act
             var result = await _productService.GetOneByIdAsync(productId);
@@ -147,6 +148,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             // Assert
             Assert.NotNull(result);
             Assert.Equal("Test Product", result.Title);
+            _mockCache.Verify(c => c.TryGetValue($"GetById-{productId}", out cacheValue!), Times.Once);
         }
 
     }

@@ -4,6 +4,7 @@ using Ecommerce.Core.src.Entities;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Ecommerce.Service.src.Services
 {
@@ -13,8 +14,8 @@ namespace Ecommerce.Service.src.Services
         private readonly IProductRepository _productRepository;
         private readonly IUserRepository _userRepository;
 
-        public ReviewService(IReviewRepository reviewRepository, IMapper mapper, IProductRepository productRepository, IUserRepository userRepository)
-           : base(reviewRepository, mapper)
+        public ReviewService(IReviewRepository reviewRepository, IMapper mapper, IProductRepository productRepository, IUserRepository userRepository, IMemoryCache cache)
+           : base(reviewRepository, mapper, cache)
         {
             _reviewRepository = reviewRepository;
             _productRepository = productRepository;

@@ -10,7 +10,7 @@ namespace Ecommerce.Service.src.Interfaces
 
         Task<CartItem> AddProductToCartAsync(Guid userId, Guid productId, int quantity);
 
-        Task<bool> RemoveItemFromCartAsync(Guid cartId, Guid itemId);
+        Task<bool> RemoveItemFromCartAsync(Guid cartId, CartItem cartItem);
 
         Task<bool> ClearCartAsync(Guid cartId);
     }

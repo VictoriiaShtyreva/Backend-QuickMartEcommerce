@@ -1,6 +1,5 @@
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.WebAPI.src.Data;
-using Ecommerce.WebAPI.src.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Ecommerce.WebAPI.src.ExternalService
@@ -9,8 +8,6 @@ namespace Ecommerce.WebAPI.src.ExternalService
     {
         private readonly AppDbContext _context;
         private IDbContextTransaction? _transaction;
-        public IProductRepository ProductRepository => new ProductRepository(_context);
-        public ICartRepository CartRepository => new CartRepository(_context);
 
         public UnitOfWork(AppDbContext context)
         {
@@ -20,17 +17,27 @@ namespace Ecommerce.WebAPI.src.ExternalService
         public async Task CommitAsync()
         {
             await _context.SaveChangesAsync();
-            _transaction?.Commit();
+            if (_transaction != null)
+            {
+                await _transaction.CommitAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
         }
 
-        public void Rollback()
+        public async Task RollbackAsync()
         {
-            _transaction?.Rollback();
+            if (_transaction != null)
+            {
+                await _transaction.RollbackAsync();
+                await _transaction.DisposeAsync();
+                _transaction = null;
+            }
         }
 
-        public IDbContextTransaction BeginTransaction()
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
-            _transaction = _context.Database.BeginTransaction();
+            _transaction = await _context.Database.BeginTransactionAsync();
             return _transaction;
         }
 
