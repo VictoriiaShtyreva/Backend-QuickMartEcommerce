@@ -12,14 +12,12 @@ namespace Ecommerce.Service.src.Services
     public class OrderService : BaseService<Order, OrderReadDto, OrderCreateDto, OrderUpdateDto, QueryOptions>, IOrderService
     {
         private readonly IOrderRepository _orderRepository;
-        private readonly ICartRepository _cartRepository;
         private readonly IBaseRepository<Address, QueryOptions> _addressRepository;
         private readonly IProductRepository _productRepository;
-        public OrderService(IOrderRepository orderRepository, ICartRepository cartRepository, IBaseRepository<Address, QueryOptions> addressRepository, IProductRepository productRepository, IMapper mapper, IMemoryCache cache)
+        public OrderService(IOrderRepository orderRepository, IBaseRepository<Address, QueryOptions> addressRepository, IProductRepository productRepository, IMapper mapper, IMemoryCache cache)
             : base(orderRepository, mapper, cache)
         {
             _orderRepository = orderRepository;
-            _cartRepository = cartRepository;
             _addressRepository = addressRepository;
             _productRepository = productRepository;
         }
@@ -36,25 +34,29 @@ namespace Ecommerce.Service.src.Services
             return true;
         }
 
-        public async Task<OrderReadDto> CreateOrderFromCartAsync(OrderCreateDto orderCreateDto)
+        public async Task<OrderReadDto> CreateOrderAsync(OrderCreateDto orderCreateDto)
         {
-            var cart = await _cartRepository.GetCartByUserIdAsync(orderCreateDto.UserId);
-            if (cart == null || cart.CartItems!.Count == 0)
-                throw new InvalidOperationException("Cart is empty or not found.");
-
             var shippingAddress = _mapper.Map<Address>(orderCreateDto.ShippingAddress) ?? throw new InvalidOperationException("Shipping address must be provided.");
-            // Save the address first
             var savedAddress = await _addressRepository.CreateAsync(shippingAddress);
-            // Create the order with the address
-            var order = new Order(orderCreateDto.UserId)
+
+            var order = new Order(orderCreateDto.UserId, savedAddress.Id)
             {
-                ShippingAddress = savedAddress,
-                AddressId = savedAddress.Id
+                ShippingAddress = savedAddress
             };
-            foreach (var item in cart.CartItems!)
+            foreach (var item in orderCreateDto.OrderItems)
             {
-                var product = await _productRepository.GetByIdAsync(item.ProductId) ?? throw new InvalidOperationException("Product details could not be found or rehydrated for order creation.");
-                order.AddOrderItem(product, item.Quantity);
+                var product = await _productRepository.GetByIdAsync(item.ProductId) ?? throw new InvalidOperationException("Product not found.");
+
+                if (product.Inventory < item.Quantity)
+                {
+                    throw new InvalidOperationException($"Insufficient inventory for product: {product.Title}");
+                }
+
+                product.Inventory -= item.Quantity;
+                await _productRepository.UpdateAsync(product);
+
+                var productSnapshot = product.CreateSnapshot();
+                order.AddOrderItem(productSnapshot, item.Quantity);
             }
             var createdOrder = await _orderRepository.CreateAsync(order);
             return _mapper.Map<OrderReadDto>(createdOrder);

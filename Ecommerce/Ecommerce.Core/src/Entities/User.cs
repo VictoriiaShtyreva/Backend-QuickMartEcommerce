@@ -1,5 +1,4 @@
 using Ardalis.GuardClauses;
-using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Entities.OrderAggregate;
 using Ecommerce.Core.src.ValueObjects;
 
@@ -13,7 +12,6 @@ namespace Ecommerce.Core.src.Entities
         public string? Avatar { get; set; }
         public UserRole Role { get; set; } = UserRole.Customer;
         public virtual IEnumerable<Order>? Orders { get; set; }
-        public virtual Cart? Cart { get; set; }
         public virtual IEnumerable<Review>? Reviews { get; set; }
 
         public User() { }

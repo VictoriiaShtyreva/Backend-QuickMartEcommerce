@@ -11,12 +11,10 @@ namespace Ecommerce.WebAPI.src.Repositories
     {
         private readonly AppDbContext _context;
         private readonly DbSet<Order> _orders;
-        private readonly ICartRepository _cartRepository;
-        public OrderRepository(AppDbContext context, ICartRepository cartRepository)
+        public OrderRepository(AppDbContext context)
         {
             _context = context;
             _orders = _context.Orders;
-            _cartRepository = cartRepository;
         }
 
         // Interface compliant CreateAsync
@@ -40,16 +38,9 @@ namespace Ecommerce.WebAPI.src.Repositories
                 // Add the new order
                 _orders.Add(entity);
                 await _context.SaveChangesAsync();
-                // Retrieve the cart items and convert them to order items
-                var cart = await _cartRepository.GetCartByUserIdAsync(entity.UserId);
-                foreach (var cartItem in cart.CartItems!)
-                {
-                    entity.AddOrderItem(cartItem.Product!, cartItem.Quantity);
-                }
                 // Save changes to order items
                 await _context.SaveChangesAsync();
                 // Clear the cart after converting to an order
-                cart.ClearCart();
                 await transaction.CommitAsync();
                 return entity;
             }

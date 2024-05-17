@@ -1,7 +1,6 @@
 using AutoMapper;
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
-using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
@@ -36,7 +35,6 @@ namespace Ecommerce.Service.src.Services
                 user.Avatar = uploadResult.SecureUrl.ToString();
             }
             user.Password = _passwordHasher.HashPassword(user, createDto.Password);
-            user.Cart = new Cart();
             user = await _userRepository.CreateAsync(user);
             _cache.Remove($"GetAll-{typeof(User).Name}");
             return _mapper.Map<UserReadDto>(user);

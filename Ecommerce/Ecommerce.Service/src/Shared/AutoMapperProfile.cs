@@ -1,6 +1,5 @@
 using AutoMapper;
 using Ecommerce.Core.src.Entities;
-using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Entities.OrderAggregate;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
@@ -18,20 +17,6 @@ namespace Ecommerce.Service.src.Shared
             CreateMap<UserUpdateDto, User>().ForMember(dest => dest.Password, opt => opt.Ignore())
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
             CreateMap<UserRoleUpdateDto, User>();
-
-            // Cart mappings
-            CreateMap<Cart, CartReadDto>()
-                .ForMember(dest => dest.Items, opt => opt.MapFrom(src => src.CartItems));
-            CreateMap<CartCreateDto, Cart>();
-            CreateMap<CartUpdateDto, Cart>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
-
-            // CartItem mappings
-            CreateMap<CartItem, CartItemReadDto>();
-            CreateMap<CartItemCreateDto, CartItem>();
-            CreateMap<CartItemUpdateDto, CartItem>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
-
 
             // Category mappings
             CreateMap<Category, CategoryReadDto>();
@@ -78,20 +63,7 @@ namespace Ecommerce.Service.src.Shared
             // Only map non-null fields to allow partial updates
             CreateMap<ReviewUpdateDto, Review>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
 
-            // Snapshot mappings
-            CreateMap<ProductSnapshot, Product>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ProductId))
-            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
-            .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
-            .ForMember(dest => dest.CategoryId, opt => opt.Ignore())
-            .ForMember(dest => dest.Inventory, opt => opt.Ignore())
-            .ForMember(dest => dest.Images, opt => opt.Ignore())
-            .ForMember(dest => dest.CartItems, opt => opt.Ignore())
-            .ForMember(dest => dest.Reviews, opt => opt.Ignore());
-
             CreateMap<ProductSnapshot, ProductSnapshotDto>(); // Map ProductSnapshot to ProductSnapshotDto
-            CreateMap<OrderItem, OrderItemReadDto>(); // Map OrderItem to OrderItemReadDto
             CreateMap<Order, OrderReadDto>().ForMember(dest => dest.OrderItems, opt => opt.MapFrom(src => src.OrderItems)); // Map Order to OrderReadDto and include OrderItems
         }
         private static bool IsValueTypeDefault(object srcMember)

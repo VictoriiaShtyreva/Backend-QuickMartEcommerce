@@ -1,6 +1,5 @@
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
-using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.WebAPI.src.Data;

@@ -1,5 +1,4 @@
 using Ecommerce.Core.src.Entities;
-using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Entities.OrderAggregate;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.Interfaces;
@@ -19,8 +18,6 @@ namespace Ecommerce.WebAPI.src.Data
         public DbSet<Order> Orders { get; set; } = null!;
         public DbSet<OrderItem> OrderItems { get; set; } = null!;
         public DbSet<Address> Addresses { get; set; } = null!;
-        public DbSet<Cart> Carts { get; set; } = null!;
-        public DbSet<CartItem> CartItems { get; set; } = null!;
         public DbSet<ProductImage> ProductImages { get; set; } = null!;
         public DbSet<ProductSnapshot> ProductSnapshots { get; set; } = null!;
 
@@ -48,7 +45,6 @@ namespace Ecommerce.WebAPI.src.Data
                 entity.HasIndex(u => u.Email).IsUnique().HasDatabaseName("users_email_key");
                 entity.Property(u => u.Name).IsRequired().HasMaxLength(255);
                 entity.Property(u => u.Password).IsRequired().HasMaxLength(255);
-                entity.HasOne(u => u.Cart).WithOne(c => c.User).HasForeignKey<Cart>(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<User>().ToTable(u => u.HasCheckConstraint("users_avatar_check", "avatar LIKE 'http%' OR avatar = ''"));
 
@@ -109,34 +105,6 @@ namespace Ecommerce.WebAPI.src.Data
                 entity.HasOne(pi => pi.Product).WithMany(p => p.Images).HasForeignKey(pi => pi.ProductId).OnDelete(DeleteBehavior.Cascade);
             });
             modelBuilder.Entity<ProductImage>().ToTable(pi => pi.HasCheckConstraint("product_images_url_check", "url LIKE 'http%' OR url = ''"));
-
-            // Cart Entity Configuration
-            modelBuilder.Entity<Cart>(entity =>
-            {
-                entity.ToTable("carts");
-                entity.HasKey(c => c.Id).HasName("carts_pkey");
-                entity.Property(c => c.CreatedAt).HasDefaultValueSql("now()");
-                entity.Property(c => c.UpdatedAt).HasDefaultValueSql("now()");
-                entity.HasOne(c => c.User).WithOne(u => u.Cart).HasForeignKey<Cart>(c => c.UserId).OnDelete(DeleteBehavior.Cascade);
-                // Configure the navigation property to use a specific backing field
-                var navigation = entity.Metadata.FindNavigation(nameof(Cart.CartItems));
-                navigation!.SetField("_items");
-                navigation.SetPropertyAccessMode(PropertyAccessMode.Field);
-            });
-            modelBuilder.Entity<Cart>().ToTable(c => c.HasCheckConstraint("carts_updated_at_check", "updated_at >= created_at"));
-
-            // CartItem Entity Configuration
-            modelBuilder.Entity<CartItem>(entity =>
-            {
-                entity.ToTable("cart_items");
-                entity.HasKey(ci => ci.Id).HasName("cart_items_pkey");
-                entity.Property(c => c.CreatedAt).HasDefaultValueSql("now()");
-                entity.Property(c => c.UpdatedAt).HasDefaultValueSql("now()");
-                entity.HasOne(ci => ci.Cart).WithMany(c => c.CartItems).HasForeignKey(ci => ci.CartId).OnDelete(DeleteBehavior.Cascade);
-                entity.HasOne(ci => ci.Product).WithMany(p => p.CartItems).HasForeignKey(ci => ci.ProductId).OnDelete(DeleteBehavior.SetNull);
-            });
-            modelBuilder.Entity<CartItem>().ToTable(c => c.HasCheckConstraint("cart_items_updated_at_check", "updated_at >= created_at"));
-            modelBuilder.Entity<CartItem>().ToTable(c => c.HasCheckConstraint("cart_items_quantity_check", "quantity > 0"));
 
             // OrderItem Entity Configuration
             modelBuilder.Entity<OrderItem>(entity =>
@@ -199,9 +167,6 @@ namespace Ecommerce.WebAPI.src.Data
             }
             modelBuilder.Entity<User>().HasData(users);
 
-            var carts = users.Select(u => new Cart { Id = Guid.NewGuid(), UserId = u.Id }).ToList();
-            modelBuilder.Entity<Cart>().HasData(carts);
-
             var addresses = SeedingData.GetAddresses();
             modelBuilder.Entity<Address>().HasData(addresses);
 
@@ -210,9 +175,6 @@ namespace Ecommerce.WebAPI.src.Data
 
             var orderItems = SeedingData.GetOrderItems(orders, products);
             modelBuilder.Entity<OrderItem>().HasData(orderItems);
-
-            var cartItems = SeedingData.GetCartItems(carts, products);
-            modelBuilder.Entity<CartItem>().HasData(cartItems);
 
             var reviews = SeedingData.GetReviews(users, products);
             modelBuilder.Entity<Review>().HasData(reviews);

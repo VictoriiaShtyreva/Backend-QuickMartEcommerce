@@ -1,7 +1,6 @@
 using AutoMapper;
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
-using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Entities.OrderAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
@@ -15,7 +14,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
     public class OrderServiceTests
     {
         private readonly Mock<IOrderRepository> _mockOrderRepository = new Mock<IOrderRepository>();
-        private readonly Mock<ICartRepository> _mockCartRepository = new Mock<ICartRepository>();
         private readonly Mock<IBaseRepository<Address, QueryOptions>> _mockAddressRepository = new Mock<IBaseRepository<Address, QueryOptions>>();
         private readonly Mock<IProductRepository> _mockProductRepository = new Mock<IProductRepository>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
@@ -24,7 +22,7 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
 
         public OrderServiceTests()
         {
-            _service = new OrderService(_mockOrderRepository.Object, _mockCartRepository.Object, _mockAddressRepository.Object, _mockProductRepository.Object, _mockMapper.Object, _mockCache.Object);
+            _service = new OrderService(_mockOrderRepository.Object, _mockAddressRepository.Object, _mockProductRepository.Object, _mockMapper.Object, _mockCache.Object);
         }
 
         [Theory]
@@ -51,12 +49,103 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         }
 
         [Fact]
-        public async Task CreateOrderFromCartAsync_ThrowsWhenCartIsEmpty()
+        public async Task CreateOrderAsync_ThrowsWhenShippingAddressIsInvalid()
         {
-            var orderCreateDto = new OrderCreateDto { UserId = Guid.NewGuid(), ShippingAddress = new AddressDto() };
-            _mockCartRepository.Setup(x => x.GetCartByUserIdAsync(orderCreateDto.UserId)).ReturnsAsync((Cart)null!);
+            var orderCreateDto = new OrderCreateDto { UserId = Guid.NewGuid(), ShippingAddress = null! };
 
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrderFromCartAsync(orderCreateDto));
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrderAsync(orderCreateDto));
+        }
+
+        [Fact]
+        public async Task CreateOrderAsync_ThrowsWhenProductNotFound()
+        {
+            var orderCreateDto = new OrderCreateDto
+            {
+                UserId = Guid.NewGuid(),
+                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
+                OrderItems = new List<OrderItemCreateDto> { new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 1 } }
+            };
+
+            _mockProductRepository.Setup(x => x.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Product)null!);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrderAsync(orderCreateDto));
+        }
+
+        [Fact]
+        public async Task CreateOrderAsync_ThrowsWhenInventoryIsInsufficient()
+        {
+            var orderCreateDto = new OrderCreateDto
+            {
+                UserId = Guid.NewGuid(),
+                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
+                OrderItems = new List<OrderItemCreateDto> { new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 10 } }
+            };
+
+            var product = new Product { Id = orderCreateDto.OrderItems[0].ProductId, Inventory = 5 };
+
+            _mockProductRepository.Setup(x => x.GetByIdAsync(product.Id)).ReturnsAsync(product);
+
+            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrderAsync(orderCreateDto));
+        }
+
+        [Fact]
+        public async Task CreateOrderAsync_CreatesOrderSuccessfully()
+        {
+            var orderCreateDto = new OrderCreateDto
+            {
+                UserId = Guid.NewGuid(),
+                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
+                OrderItems = new List<OrderItemCreateDto>
+                {
+                    new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 1 },
+                    new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 2 }
+                }
+            };
+
+            var products = orderCreateDto.OrderItems.Select(item => new Product
+            {
+                Id = item.ProductId,
+                Inventory = 10,
+                Title = "Test Product",
+                Description = "Test Description",
+                Price = 100.00m,
+                Images = new List<ProductImage> { new ProductImage { Url = "http://example.com/image.jpg" } }
+            }).ToList();
+
+            var address = new Address { Id = Guid.NewGuid() };
+
+            foreach (var product in products)
+            {
+                _mockProductRepository.Setup(p => p.GetByIdAsync(product.Id)).ReturnsAsync(product);
+            }
+
+            _mockAddressRepository.Setup(x => x.CreateAsync(It.IsAny<Address>())).ReturnsAsync(address);
+            _mockOrderRepository.Setup(x => x.CreateAsync(It.IsAny<Order>())).ReturnsAsync(new Order { UserId = orderCreateDto.UserId });
+
+            _mockMapper.Setup(m => m.Map<Address>(It.IsAny<AddressDto>())).Returns(address);
+            _mockMapper.Setup(m => m.Map<OrderReadDto>(It.IsAny<Order>())).Returns(new OrderReadDto
+            {
+                UserId = orderCreateDto.UserId,
+                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
+                OrderItems = orderCreateDto.OrderItems.Select(i => new OrderItemReadDto
+                {
+                    ProductSnapshot = new ProductSnapshotDto
+                    {
+                        ProductId = i.ProductId,
+                        Title = products.First(p => p.Id == i.ProductId).Title,
+                        Description = products.First(p => p.Id == i.ProductId).Description,
+                        Price = products.First(p => p.Id == i.ProductId).Price,
+                    },
+                    Quantity = i.Quantity
+                }).ToList()
+            });
+
+            var result = await _service.CreateOrderAsync(orderCreateDto);
+
+            Assert.NotNull(result);
+            Assert.Equal(orderCreateDto.UserId, result.UserId);
+            Assert.Equal(orderCreateDto.ShippingAddress.AddressLine, result.ShippingAddress!.AddressLine);
+            Assert.Equal(orderCreateDto.OrderItems.Count, result.OrderItems!.Count);
         }
 
         [Fact]
@@ -92,65 +181,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
                 Assert.Equal(newStatus, order.Status);
         }
 
-        [Theory]
-        [InlineData(true, 0)]  // Cart is present but empty
-        [InlineData(false, 0)] // Cart is null
-        [InlineData(true, 3)]  // Cart is present and has items
-        public async Task CreateOrderFromCartAsync_ThrowsWhenCartIsInvalid(bool isCartPresent, int itemCount)
-        {
-            var userId = Guid.NewGuid();
-            Cart? cart = isCartPresent ? CreateCartWithItems(userId, itemCount) : null;
-
-            _mockCartRepository.Setup(x => x.GetCartByUserIdAsync(userId))!.ReturnsAsync(cart);
-            var orderCreateDto = new OrderCreateDto
-            {
-                UserId = userId,
-                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" }
-            };
-
-            if (!isCartPresent || itemCount == 0)
-            {
-                await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrderFromCartAsync(orderCreateDto));
-            }
-            else
-            {
-                var address = new Address { Id = Guid.NewGuid() };
-                _mockMapper.Setup(m => m.Map<Address>(It.IsAny<AddressDto>())).Returns(address);
-                _mockAddressRepository.Setup(x => x.CreateAsync(address)).ReturnsAsync(address);
-                _mockOrderRepository.Setup(o => o.CreateAsync(It.IsAny<Order>())).ReturnsAsync(new Order { UserId = userId });
-
-                _mockMapper.Setup(mapper => mapper.Map<OrderReadDto>(It.IsAny<Order>()))
-                    .Returns(new OrderReadDto
-                    {
-                        UserId = userId,
-                        ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
-                        OrderItems = new List<OrderItemReadDto>()
-                    });
-
-                var result = await _service.CreateOrderFromCartAsync(orderCreateDto);
-                Assert.NotNull(result);
-                Assert.IsType<OrderReadDto>(result);
-            }
-        }
-
-        private Cart CreateCartWithItems(Guid userId, int itemCount)
-        {
-            var cart = new Cart(userId);
-            for (int i = 0; i < itemCount; i++)
-            {
-                var productId = Guid.NewGuid();
-                var product = new Product
-                {
-                    Id = productId,
-                    Title = "Test Product",
-                    Price = 100.00m,
-                    Description = "Test Description"
-                };
-                _mockProductRepository.Setup(p => p.GetByIdAsync(productId)).ReturnsAsync(product);
-                cart.AddProduct(product, i + 1);
-            }
-            return cart;
-        }
 
         [Fact]
         public async Task CreateOneAsync_ShouldReturnCreatedOrderReadDto()

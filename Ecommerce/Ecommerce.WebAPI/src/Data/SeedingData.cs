@@ -1,5 +1,4 @@
 using Ecommerce.Core.src.Entities;
-using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Entities.OrderAggregate;
 using Ecommerce.Core.src.ValueObjects;
 
@@ -150,18 +149,6 @@ namespace Ecommerce.WebAPI.src.Data
         }
         #endregion
 
-        #region CartItems
-        public static List<CartItem> GetCartItems(List<Cart> carts, List<Product> products)
-        {
-            var cartItems = new List<CartItem>
-            {
-                new CartItem { Id = Guid.NewGuid(), CartId = carts[0].Id, ProductId = products[0].Id, Quantity = 2 },
-                new CartItem { Id = Guid.NewGuid(), CartId = carts[1].Id, ProductId = products[1].Id, Quantity = 3 },
-                new CartItem { Id = Guid.NewGuid(), CartId = carts[2].Id, ProductId = products[2].Id, Quantity = 1 }
-            };
-            return cartItems;
-        }
-        #endregion
 
         #region OrderItems
         public static List<OrderItem> GetOrderItems(List<Order> orders, List<Product> products)
@@ -172,12 +159,14 @@ namespace Ecommerce.WebAPI.src.Data
             foreach (var order in orders)
             {
                 var product = products[random.Next(products.Count)];
+                var productImages = product.Images?.Select(img => img.Url).ToList() ?? new List<string>()!;
                 var snapshot = new ProductSnapshot
                 {
                     ProductId = product.Id,
                     Title = product.Title,
                     Price = product.Price,
-                    Description = product.Description
+                    Description = product.Description,
+                    ImageUrls = productImages!
                 };
                 var orderItem = new OrderItem
                 {

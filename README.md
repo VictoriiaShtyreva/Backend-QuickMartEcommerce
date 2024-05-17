@@ -7,7 +7,7 @@
 ![EF Core](https://img.shields.io/badge/EF%20Core-v.8-cyan)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v.16-drakblue)
 
-The repository is an integral part of my capstone final project of the Full Stack Program at [Integrify](https://www.integrify.io/). It is the back-end component of an e-commerce application that showcases the capabilities which online retailers to operate. The data is retrieved, and can be created, deleted etc. through an API, an API which is running on ASP. NET Core. The application is passed with user authentication selected roles for user. Registering as a customer gives you the liberty to place product into cart, create an order, manage your history, and review a product. The administrator is able to do CRUD operations on the products, user- and all the orders from his own dashboard too.
+The repository is an integral part of my capstone final project of the Full Stack Program at [Integrify](https://www.integrify.io/). It is the back-end component of an e-commerce application that showcases the capabilities which online retailers to operate. The data is retrieved, and can be created, deleted etc. through an API, an API which is running on ASP. NET Core. The application is passed with user authentication selected roles for user. Registering as a customer gives you the liberty to create an order, manage your history, and review a product. The administrator is able to do CRUD operations on the products, user- and all the orders from his own dashboard too.
 
 - Frontend: TypeScript, React, Redux Toolkit, React Router, Material UI, Jest
 - Backend: ASP.NET Core, Entity Framework Core, PostgreSQL
@@ -102,17 +102,14 @@ Detailed database schema definitions including data types, constraints, and rela
 
 > Below is a table describing the relationships between the various entities in the ERD. Each table's primary key (PK) and foreign key (FK) relationships are denoted in the ERD, which establish the links between different entities.
 
-| Entity 1     | Relationship | Entity 2         | Description                                                                                                                           |
-| ------------ | ------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `users`      | One to Many  | `reviews`        | Each user can write multiple reviews. A review must be associated with a user.                                                        |
-| `products`   | One to Many  | `reviews`        | Each product can have multiple reviews. A review must be related to a product.                                                        |
-| `products`   | One to Many  | `product_images` | Each product can have multiple product images. A product images must be related to a product.                                         |
-| `categories` | One to Many  | `products`       | Each category can encompass multiple products. A product must belong to a category.                                                   |
-| `users`      | One to Many  | `orders`         | Each user can place multiple orders. An order is linked to the user who placed it.                                                    |
-| `orders`     | One to Many  | `order_items`    | Each order can contain multiple items. Order items are linked back to their respective orders.                                        |
-| `products`   | One to Many  | `cart_items`     | Products can be part of multiple order items, showing the quantity and price per order. Each order item is associated with a product. |
-| `users`      | One to One   | `carts`          | Each user has one cart associated with them. The cart holds the products that the user is currently interested in purchasing.         |
-| `carts`      | One to Many  | `cart_items`     | Each cart can hold multiple items. Cart items link the product with its quantity in the user's cart.                                  |
+| Entity 1     | Relationship | Entity 2         | Description                                                                                    |
+| ------------ | ------------ | ---------------- | ---------------------------------------------------------------------------------------------- |
+| `users`      | One to Many  | `reviews`        | Each user can write multiple reviews. A review must be associated with a user.                 |
+| `products`   | One to Many  | `reviews`        | Each product can have multiple reviews. A review must be related to a product.                 |
+| `products`   | One to Many  | `product_images` | Each product can have multiple product images. A product images must be related to a product.  |
+| `categories` | One to Many  | `products`       | Each category can encompass multiple products. A product must belong to a category.            |
+| `users`      | One to Many  | `orders`         | Each user can place multiple orders. An order is linked to the user who placed it.             |
+| `orders`     | One to Many  | `order_items`    | Each order can contain multiple items. Order items are linked back to their respective orders. |
 
 ## Backend Server with ASP.NET Core
 
@@ -157,15 +154,11 @@ My project is organized as follows to maintain a clean and navigable codebase:
 |   |   |   |-- Review.cs                     // Customer reviews for products, includes Rating and Comment.
 |   |   |   |-- TimeStamp.cs                  // Adds timestamps to entities, handled by TimeStampInterceptor for automatic updates.
 |   |   |   |-- User.cs                       // User profile information, including credentials and roles.
-|   |   |   |-- CartAggregate/                // Represents a shopping cart, including a collection of CartItems.
-|   |   |   |   |-- Cart.cs
-|   |   |   |   |-- CartItem.cs
 |   |   |   |-- OrderAggregate/               // Details an order, encapsulating order items and transaction data.
 |   |   |   |   |-- Order.cs
 |   |   |   |   |-- OrderItem.cs
 |   |   |-- /Interfaces
 |   |   |   |-- IBaseRepository.cs            // Generic interface for CRUD operations applicable to all entities.
-|   |   |   |-- ICartRepository.cs            // Specific operations for cart management not covered by the generic repository.
 |   |   |   |-- ICategoryRepository.cs        // Custom repository actions for categories, like bulk update or specialized queries.
 |   |   |   |-- IOrderRepository.cs           // Additional methods for managing orders, including status updates and history.
 |   |   |   |-- IProductImageRepository.cs    // Handles operations specific to product image storage and retrieval.
@@ -182,8 +175,6 @@ My project is organized as follows to maintain a clean and navigable codebase:
 |   |
 |   |-- /Ecommerce.Service
 |   |   |-- /DTO
-|   |   |   |-- CartDto.cs                    // Data transfer object for cart contents, includes list of CartItemDto.
-|   |   |   |-- CartItemDto.cs                // Represents a single cart item in a transferable format, includes ProductId and Quantity.
 |   |   |   |-- CategoryDto.cs                // Simplified category data for transfer, primarily used in listing endpoints.
 |   |   |   |-- OrderDto.cs                   // Summary of an order for client applications, includes OrderItems and total cost.
 |   |   |   |-- OrderItemDto.cs               // Details of an individual order item within an order.
@@ -195,8 +186,6 @@ My project is organized as follows to maintain a clean and navigable codebase:
 |   |   |   |-- /Services
 |   |   |   |-- AuthService.cs                // Manages authentication processes, including token generation and validation.
 |   |   |   |-- BaseService.cs                // Base service providing common functionalities to all services, such as logging.
-|   |   |   |-- CartItemService.cs            // Business logic related to individual cart items, such as additions and removals.
-|   |   |   |-- CartService.cs                // Overall management of shopping carts, including session handling and persistence.
 |   |   |   |-- CategoryService.cs            // Operations related to category management, from creation to modification.
 |   |   |   |-- OrderItemService.cs           // Detailed logic for handling order items during the purchase process.
 |   |   |   |-- OrderService.cs               // Coordinates all aspects of order processing, from placement to delivery.
@@ -212,7 +201,6 @@ My project is organized as follows to maintain a clean and navigable codebase:
 |   |-- /Ecommerce.Controller
 |   |   |-- /Controller
 |   |   |   |-- AuthController.cs             // Handles authentication requests, like login and token refresh.
-|   |   |   |-- CartController.cs             // API endpoints for cart interactions, such as adding or removing items.
 |   |   |   |-- CategoryController.cs         // Provides API access to category data, including CRUD operations.
 |   |   |   |-- OrderController.cs            // Manages order-related endpoints, from creation to status updates.
 |   |   |   |-- ProductController.cs          // Controls product data exposure through the API, including search and details.
@@ -222,8 +210,6 @@ My project is organized as follows to maintain a clean and navigable codebase:
 |   |   |
 |   |-- /Ecommerce.WebAPI
 |   |   |-- /Repo
-|   |   |   |-- CartItemRepository.cs         // Repository for handling operations specific to cart items.
-|   |   |   |-- CartRepository.cs             // Manages data access related to the shopping cart.
 |   |   |   |-- CategoryRepository.cs         // Accesses and manipulates category data in the database.
 |   |   |   |-- ProductImageRepo.cs           // Handles the persistence of product images.
 |   |   |   |-- ProductRepo.cs                // Facilitates data access for product management.
@@ -237,8 +223,6 @@ My project is organized as follows to maintain a clean and navigable codebase:
 |   |
 |   |-- /Ecommerce.Test
 |   |   |-- /UnitTests
-|   |   |   |-- CartItemTests.cs              // Tests for cart item functionalities.
-|   |   |   |-- CartTests.cs                  // Tests for cart functionalities.
 |   |   |   |-- CategoryTests.cs              // Tests for category functionalities.
 |   |   |   |-- OrderTests.cs                 // Tests for order functionalities.
 |   |   |   |-- ProductImageTests.cs          // Tests for product image functionalities.
@@ -247,8 +231,6 @@ My project is organized as follows to maintain a clean and navigable codebase:
 |   |   |   |-- UserTests.cs                  // Tests for user functionalities.
 |   |
 |   |   |-- /Service
-|   |   |   |-- CartItemServiceTests.cs       // Tests for cart item service operations.
-|   |   |   |-- CartServiceTests.cs           // Tests for cart service operations.
 |   |   |   |-- CategoryServiceTests.cs       // Tests for category service operations.
 |   |   |   |-- OrderItemServiceTests.cs      // Tests for order item service operations.
 |   |   |   |-- OrderServiceTests.cs          // Tests for order service operations.

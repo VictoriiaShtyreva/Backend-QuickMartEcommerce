@@ -15,20 +15,19 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
         public virtual Address? ShippingAddress { get; set; }
 
         public Order() { }
-        public Order(Guid userId)
+        public Order(Guid userId, Guid addressId)
         {
             Guard.Against.Default(userId, nameof(userId));
             Id = Guid.NewGuid();
             UserId = userId;
+            AddressId = addressId;
             _orderItems = new HashSet<OrderItem>(new OrderItemComparer());
         }
 
         // Method to create an OrderItem and add it to the order
-        public void AddOrderItem(Product product, int quantity)
+        public void AddOrderItem(ProductSnapshot productSnapshot, int quantity)
         {
-
-            var productSnapshot = product.CreateSnapshot();
-            var existingItem = _orderItems!.FirstOrDefault(i => i.ProductSnapshot!.ProductId == product.Id);
+            var existingItem = _orderItems!.FirstOrDefault(i => i.ProductSnapshot!.ProductId == productSnapshot.ProductId);
             if (existingItem != null)
             {
                 existingItem.Quantity += quantity;

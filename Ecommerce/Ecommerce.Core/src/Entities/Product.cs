@@ -1,5 +1,4 @@
 using Ardalis.GuardClauses;
-using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.ValueObjects;
 
 namespace Ecommerce.Core.src.Entities
@@ -13,7 +12,6 @@ namespace Ecommerce.Core.src.Entities
         public Guid CategoryId { get; set; }
         public int Inventory { get; set; }
         public virtual IEnumerable<ProductImage>? Images { get; set; }
-        public virtual IEnumerable<CartItem>? CartItems { get; set; }
         public virtual IEnumerable<Review>? Reviews { get; set; }
 
         public Product() { }
@@ -30,7 +28,8 @@ namespace Ecommerce.Core.src.Entities
         // Method to create a snapshot of the product
         public ProductSnapshot CreateSnapshot()
         {
-            return new ProductSnapshot(Id, Title!, Price, Description!);
+            var imageUrls = Images?.Select(img => img.Url).ToList() ?? new List<string>()!;
+            return new ProductSnapshot(Id, Title!, Price, Description!, imageUrls!);
         }
     }
 }

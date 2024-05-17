@@ -2,7 +2,6 @@ using System.Text;
 using CloudinaryDotNet;
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entities;
-using Ecommerce.Core.src.Entities.CartAggregate;
 using Ecommerce.Core.src.Entities.OrderAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
@@ -110,11 +109,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 // ProductImage
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
-// Cart and CartItems
-builder.Services.AddScoped<ICartItemService, CartItemService>();
-builder.Services.AddScoped<IBaseRepository<CartItem, QueryOptions>, CartItemRepository>();
-builder.Services.AddScoped<ICartRepository, CartRepository>();
-builder.Services.AddScoped<ICartService, CartService>();
+
 //Order and OrderItems
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();

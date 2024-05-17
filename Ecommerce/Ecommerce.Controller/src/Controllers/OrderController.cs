@@ -68,7 +68,7 @@ namespace Ecommerce.Controller.src.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<ActionResult<OrderReadDto>> CreateOrderAsync([FromBody] OrderCreateDto orderCreateDto)
         {
-            var createdOrder = await _orderService.CreateOrderFromCartAsync(orderCreateDto);
+            var createdOrder = await _orderService.CreateOrderAsync(orderCreateDto);
             return CreatedAtAction(nameof(GetOrderAsync), new { orderId = createdOrder.Id }, createdOrder);
         }
 
