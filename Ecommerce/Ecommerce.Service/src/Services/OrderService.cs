@@ -14,12 +14,14 @@ namespace Ecommerce.Service.src.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IBaseRepository<Address, QueryOptions> _addressRepository;
         private readonly IProductRepository _productRepository;
-        public OrderService(IOrderRepository orderRepository, IBaseRepository<Address, QueryOptions> addressRepository, IProductRepository productRepository, IMapper mapper, IMemoryCache cache)
+        private readonly IProductImageRepository _productImageRepository;
+        public OrderService(IOrderRepository orderRepository, IBaseRepository<Address, QueryOptions> addressRepository, IProductRepository productRepository, IProductImageRepository productImageRepository, IMapper mapper, IMemoryCache cache)
             : base(orderRepository, mapper, cache)
         {
             _orderRepository = orderRepository;
             _addressRepository = addressRepository;
             _productRepository = productRepository;
+            _productImageRepository = productImageRepository;
         }
         public async Task<bool> CancelOrderAsync(Guid orderId)
         {
@@ -38,7 +40,6 @@ namespace Ecommerce.Service.src.Services
         {
             var shippingAddress = _mapper.Map<Address>(orderCreateDto.ShippingAddress) ?? throw new InvalidOperationException("Shipping address must be provided.");
             var savedAddress = await _addressRepository.CreateAsync(shippingAddress);
-
             var order = new Order(orderCreateDto.UserId, savedAddress.Id)
             {
                 ShippingAddress = savedAddress
@@ -46,16 +47,14 @@ namespace Ecommerce.Service.src.Services
             foreach (var item in orderCreateDto.OrderItems)
             {
                 var product = await _productRepository.GetByIdAsync(item.ProductId) ?? throw new InvalidOperationException("Product not found.");
-
                 if (product.Inventory < item.Quantity)
                 {
                     throw new InvalidOperationException($"Insufficient inventory for product: {product.Title}");
                 }
-
                 product.Inventory -= item.Quantity;
                 await _productRepository.UpdateAsync(product);
-
-                var productSnapshot = product.CreateSnapshot();
+                // Fetch product images
+                var productSnapshot = await product.CreateSnapshotAsync(_productImageRepository);
                 order.AddOrderItem(productSnapshot, item.Quantity);
             }
             var createdOrder = await _orderRepository.CreateAsync(order);

@@ -21,12 +21,13 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 using Npgsql;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 
 
-// add automapper dependency injection
+// Add AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
 //Cloudinary
@@ -56,11 +57,12 @@ builder.Services.AddSwaggerGen(
             Scheme = "Bearer"
         }
         );
+
         options.OperationFilter<SecurityRequirementsOperationFilter>();
     }
 );
 
-// adding db context into app
+// Add DB context
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("Localhost"));
 dataSourceBuilder.MapEnum<UserRole>();
 dataSourceBuilder.MapEnum<OrderStatus>();
@@ -109,7 +111,6 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 // ProductImage
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
 builder.Services.AddScoped<IProductImageService, ProductImageService>();
-
 //Order and OrderItems
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -117,9 +118,9 @@ builder.Services.AddScoped<IBaseRepository<OrderItem, QueryOptions>, OrderItemRe
 builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 // Address
 builder.Services.AddScoped<IBaseRepository<Address, QueryOptions>, AddressRepository>();
-
 //Cloudinary
 builder.Services.AddScoped<ICloudinaryImageService, CloudinaryImageService>();
+
 // Configure Cloudinary
 var cloudinaryAccount = new Account(
     builder.Configuration["CloudinarySettings:CloudName"],
@@ -144,7 +145,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 }
 );
 
-
 // Resource based auth handlers
 builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerOrderHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerReviewHandler>();
@@ -164,10 +164,9 @@ app.UseCors("AllowAllOrigins");
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
 app.UseRouting();
-
 app.UseHttpsRedirection();
-
 app.UseAuthentication();
 app.UseAuthorization();
 

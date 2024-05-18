@@ -24,7 +24,6 @@ namespace Ecommerce.WebAPI.src.Data
                             timeStamp.UpdatedAt = DateTime.UtcNow;
                             break;
                     }
-                    Console.WriteLine($"Entity {entry.Entity.GetType().Name}: CreatedAt = {timeStamp.CreatedAt}, UpdatedAt = {timeStamp.UpdatedAt}");
                 }
             }
             return base.SavingChangesAsync(eventData, result, cancellationToken);

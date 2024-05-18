@@ -151,22 +151,21 @@ namespace Ecommerce.WebAPI.src.Data
 
 
         #region OrderItems
-        public static List<OrderItem> GetOrderItems(List<Order> orders, List<Product> products)
+        public static List<OrderItem> GetOrderItems(List<Order> orders, List<Product> products, List<ProductImage> productImages)
         {
             var random = new Random();
             var orderItems = new List<OrderItem>();
-
             foreach (var order in orders)
             {
                 var product = products[random.Next(products.Count)];
-                var productImages = product.Images?.Select(img => img.Url).ToList() ?? new List<string>()!;
+                var images = productImages.Where(img => img.ProductId == product.Id).Select(img => img.Url).ToList();
                 var snapshot = new ProductSnapshot
                 {
                     ProductId = product.Id,
                     Title = product.Title,
                     Price = product.Price,
                     Description = product.Description,
-                    ImageUrls = productImages!
+                    ImageUrls = images!
                 };
                 var orderItem = new OrderItem
                 {
@@ -191,7 +190,14 @@ namespace Ecommerce.WebAPI.src.Data
             {
                 new Review { Id = Guid.NewGuid(), UserId = users[0].Id, ProductId = products[0].Id, Rating = 5, Content = "Excellent product!" },
                 new Review { Id = Guid.NewGuid(), UserId = users[1].Id, ProductId = products[1].Id, Rating = 4, Content = "Very good quality." },
-                new Review { Id = Guid.NewGuid(), UserId = users[2].Id, ProductId = products[2].Id, Rating = 3, Content = "Average product." }
+                new Review { Id = Guid.NewGuid(), UserId = users[2].Id, ProductId = products[2].Id, Rating = 3, Content = "Average product." },
+                new Review { Id = Guid.NewGuid(), UserId = users[1].Id, ProductId = products[3].Id, Rating = 4, Content = "Solid build, satisfied with the purchase." },
+                new Review { Id = Guid.NewGuid(), UserId = users[2].Id, ProductId = products[4].Id, Rating = 2, Content = "Not as described, disappointed." },
+                new Review { Id = Guid.NewGuid(), UserId = users[0].Id, ProductId = products[5].Id, Rating = 5, Content = "Outstanding! Exceeded my expectations." },
+                new Review { Id = Guid.NewGuid(), UserId = users[2].Id, ProductId = products[6].Id, Rating = 3, Content = "It's okay, does the job." },
+                new Review { Id = Guid.NewGuid(), UserId = users[0].Id, ProductId = products[7].Id, Rating = 4, Content = "Good product, but a bit pricey." },
+                new Review { Id = Guid.NewGuid(), UserId = users[1].Id, ProductId = products[8].Id, Rating = 5, Content = "Love it! Highly recommend." },
+                new Review { Id = Guid.NewGuid(), UserId = users[0].Id, ProductId = products[9].Id, Rating = 4, Content = "Works well, as expected." }
             };
             return reviews;
         }

@@ -1,4 +1,5 @@
 using Ardalis.GuardClauses;
+using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 
 namespace Ecommerce.Core.src.Entities
@@ -26,10 +27,17 @@ namespace Ecommerce.Core.src.Entities
         }
 
         // Method to create a snapshot of the product
-        public ProductSnapshot CreateSnapshot()
+        public async Task<ProductSnapshot> CreateSnapshotAsync(IProductImageRepository productImageRepository)
         {
-            var imageUrls = Images?.Select(img => img.Url).ToList() ?? new List<string>()!;
-            return new ProductSnapshot(Id, Title!, Price, Description!, imageUrls!);
+            var productImages = await productImageRepository.GetProductImagesByProductIdAsync(Id);
+            return new ProductSnapshot
+            {
+                ProductId = Id,
+                Title = Title,
+                Price = Price,
+                Description = Description,
+                ImageUrls = productImages.Select(img => img.Url).ToList()!
+            };
         }
     }
 }

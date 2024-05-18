@@ -19,7 +19,6 @@ namespace Ecommerce.WebAPI.src.Data
         public DbSet<OrderItem> OrderItems { get; set; } = null!;
         public DbSet<Address> Addresses { get; set; } = null!;
         public DbSet<ProductImage> ProductImages { get; set; } = null!;
-        public DbSet<ProductSnapshot> ProductSnapshots { get; set; } = null!;
 
         public AppDbContext(DbContextOptions<AppDbContext> options, IConfiguration config, IPasswordService passwordService) : base(options)
         {
@@ -173,7 +172,7 @@ namespace Ecommerce.WebAPI.src.Data
             var orders = SeedingData.GetOrders(users, addresses);
             modelBuilder.Entity<Order>().HasData(orders);
 
-            var orderItems = SeedingData.GetOrderItems(orders, products);
+            var orderItems = SeedingData.GetOrderItems(orders, products, productImages);
             modelBuilder.Entity<OrderItem>().HasData(orderItems);
 
             var reviews = SeedingData.GetReviews(users, products);
