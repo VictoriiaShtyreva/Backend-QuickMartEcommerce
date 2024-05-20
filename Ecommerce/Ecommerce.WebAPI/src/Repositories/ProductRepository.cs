@@ -11,7 +11,6 @@ namespace Ecommerce.WebAPI.src.Repositories
     {
         private readonly AppDbContext _context;
         private readonly DbSet<Product> _products;
-
         public ProductRepository(AppDbContext context)
         {
             _context = context;
@@ -36,12 +35,21 @@ namespace Ecommerce.WebAPI.src.Repositories
 
         public async Task<IEnumerable<Product>> GetAllAsync(QueryOptions options)
         {
-            IQueryable<Product> query = _context.Products.AsQueryable();
+            var query = _products
+                .Include(p => p.Category)
+                .Include(p => p.Images)
+                .Include(p => p.Reviews)
+                .AsQueryable();
+
             // Sorting
             query = ProductsSorting(query, options.SortBy, options.SortOrder);
             // Pagination
-            query = query.Skip((options.Page - 1) * options.PageSize).Take(options.PageSize);
+            if (options.Page >= 0 && options.PageSize > 0)
+            {
+                query = query.Skip(options.Page * options.PageSize).Take(options.PageSize);
+            }
             return await query.ToListAsync();
+
         }
 
         private IQueryable<Product> ProductsSorting(IQueryable<Product> query, SortType sortBy, SortOrder sortOrder)
@@ -117,5 +125,9 @@ namespace Ecommerce.WebAPI.src.Repositories
         {
             return await _products.AnyAsync(e => e.Id == entity.Id);
         }
+    }
+
+    internal class ProductImages
+    {
     }
 }

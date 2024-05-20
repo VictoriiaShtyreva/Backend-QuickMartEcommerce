@@ -48,11 +48,14 @@ namespace Ecommerce.Service.src.Services
 
         public virtual async Task<IEnumerable<TReadDTO>> GetAllAsync(QueryOptions options)
         {
-            if (!_cache.TryGetValue($"GetAll-{typeof(TEntity).Name}", out IEnumerable<TEntity>? entities))
+            string cacheKey = $"GetAll-{typeof(TEntity).Name}-{options!.GetHashCode()}";
+
+            if (!_cache.TryGetValue(cacheKey, out IEnumerable<TEntity>? entities))
             {
                 entities = await _repository.GetAllAsync(options);
-                _cache.Set($"GetAll-{typeof(TEntity).Name}", entities, _cacheOptions);
+                _cache.Set(cacheKey, entities, _cacheOptions);
             }
+
             return _mapper.Map<IEnumerable<TReadDTO>>(entities);
         }
 
