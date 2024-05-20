@@ -91,7 +91,7 @@ namespace Ecommerce.Controller.src.Controllers
                 return Forbid();
             }
             var result = await _userService.ResetPasswordAsync(userId, newPassword);
-            return result ? Ok() : NotFound();
+            return result ? Ok(result) : NotFound();
         }
 
         [HttpPatch("{userId}/update-password")]
@@ -108,7 +108,7 @@ namespace Ecommerce.Controller.src.Controllers
                 return Forbid();
             }
             var result = await _userService.UpdatePasswordAsync(userId, newPassword);
-            return result ? Ok() : NotFound();
+            return result ? Ok(result) : NotFound();
         }
 
         [HttpPatch("{userId}/update-role")]
@@ -140,8 +140,8 @@ namespace Ecommerce.Controller.src.Controllers
             {
                 return Forbid();
             }
-            await _userService.DeleteOneAsync(userId);
-            return Ok();
+            var result = await _userService.DeleteOneAsync(userId);
+            return Ok(result);
         }
     }
 

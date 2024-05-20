@@ -76,12 +76,12 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             if (!userExists || !productExists)
             {
                 // Act & Assert
-                await Assert.ThrowsAsync<AppException>(() => _reviewService.CreateOneAsync(userId, createDto));
+                await Assert.ThrowsAsync<AppException>(() => _reviewService.CreateReviewAsync(userId, createDto));
             }
             else
             {
                 // Act
-                var result = await _reviewService.CreateOneAsync(userId, createDto);
+                var result = await _reviewService.CreateReviewAsync(userId, createDto);
 
                 // Assert
                 Assert.NotNull(result);

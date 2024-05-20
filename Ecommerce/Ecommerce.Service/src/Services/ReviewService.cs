@@ -34,7 +34,7 @@ namespace Ecommerce.Service.src.Services
             return _mapper.Map<IEnumerable<ReviewReadDto>>(reviews);
         }
 
-        public async Task<ReviewReadDto> CreateOneAsync(Guid userId, ReviewCreateDto createDto)
+        public async Task<ReviewReadDto> CreateReviewAsync(Guid userId, ReviewCreateDto createDto)
         {
             // Validate existence of user and product using their IDs by constructing entities for existence check
             var user = new User { Id = userId };

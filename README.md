@@ -136,6 +136,8 @@ Unit tests in this project are crucial for ensuring code quality and functionali
 
 - **Testing Strategy**: Utilizes xUnit. Mocking is facilitated by libraries like Moq to simulate repository interactions.
 
+![UnitTesting](/readmeImg/UnitTests.png)
+
 ## Repository Structure
 
 My project is organized as follows to maintain a clean and navigable codebase:

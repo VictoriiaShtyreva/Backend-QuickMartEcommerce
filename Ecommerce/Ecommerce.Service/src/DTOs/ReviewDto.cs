@@ -21,6 +21,7 @@ namespace Ecommerce.Service.src.DTOs
 
     public class ReviewUpdateDto
     {
+        public Guid UserId { get; set; }
         public int? Rating { get; set; }
         public string? Content { get; set; }
     }

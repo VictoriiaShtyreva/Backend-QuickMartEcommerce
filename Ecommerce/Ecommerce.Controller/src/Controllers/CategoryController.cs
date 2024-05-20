@@ -69,7 +69,7 @@ namespace Ecommerce.Controller.src.Controllers
         public async Task<ActionResult> DeleteCategoryAsync(Guid categoryId)
         {
             var result = await _categoryService.DeleteOneAsync(categoryId);
-            return result ? Ok() : NotFound();
+            return result ? Ok(result) : NotFound();
         }
 
         [HttpGet("{categoryId}/products")]

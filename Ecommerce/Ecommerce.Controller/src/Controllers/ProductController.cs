@@ -68,7 +68,7 @@ namespace Ecommerce.Controller.src.Controllers
         public async Task<IActionResult> DeleteProductAsync([FromRoute] Guid productId)
         {
             var result = await _productService.DeleteOneAsync(productId);
-            return result ? Ok() : NotFound();
+            return result ? Ok(result) : NotFound();
         }
 
         [HttpGet("most-purchased")]

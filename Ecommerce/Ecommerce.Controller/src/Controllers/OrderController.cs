@@ -80,12 +80,10 @@ namespace Ecommerce.Controller.src.Controllers
         {
             var order = await _orderService.GetOneByIdAsync(orderId);
             var userId = GetUserIdClaim();
-
             if (order == null || (order.UserId != userId && !IsUserAdmin()))
             {
                 return Forbid();
             }
-
             var updated = await _orderService.UpdateOrderStatusAsync(orderId, orderStatusUpdateDto.NewStatus);
             if (!updated) return NotFound();
             return NoContent();
@@ -99,12 +97,10 @@ namespace Ecommerce.Controller.src.Controllers
         {
             var order = await _orderService.GetOneByIdAsync(orderId);
             var userId = GetUserIdClaim();
-
             if (order == null || (order.UserId != userId && !IsUserAdmin()))
             {
                 return Forbid();
             }
-
             var updated = await _orderService.UpdateOrderAsync(orderId, orderUpdateDto);
             if (!updated) return NotFound();
             return NoContent();
@@ -124,7 +120,7 @@ namespace Ecommerce.Controller.src.Controllers
             }
             var canceled = await _orderService.CancelOrderAsync(orderId);
             if (!canceled) return BadRequest();
-            return Ok();
+            return Ok(canceled);
         }
 
         [HttpDelete("{orderId}/delete")]
@@ -143,7 +139,7 @@ namespace Ecommerce.Controller.src.Controllers
 
             var deleted = await _orderService.DeleteOneAsync(orderId);
             if (!deleted) return NotFound();
-            return Ok();
+            return Ok(deleted);
         }
 
         private Guid GetUserIdClaim()

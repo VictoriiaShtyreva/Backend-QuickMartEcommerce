@@ -7,5 +7,6 @@ namespace Ecommerce.Service.src.Interfaces
     {
         Task<IEnumerable<ReviewReadDto>> GetReviewsByProductIdAsync(Guid productId);
         Task<IEnumerable<ReviewReadDto>> GetReviewsByUserIdAsync(Guid userId);
+        Task<ReviewReadDto> CreateReviewAsync(Guid userId, ReviewCreateDto createDto);
     }
 }
