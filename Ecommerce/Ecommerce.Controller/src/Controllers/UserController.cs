@@ -40,14 +40,7 @@ namespace Ecommerce.Controller.src.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IEnumerable<UserReadDto>> GetAllUsersAsync([FromQuery] QueryOptions options)
         {
-            try
-            {
-                return await _userService.GetAllAsync(options);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            return await _userService.GetAllAsync(options);
         }
 
         [HttpPost]
