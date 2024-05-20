@@ -89,7 +89,6 @@ builder.Services.AddCors(options =>
         });
 });
 
-
 // service registration -> automatically create all instances of dependencies
 builder.Services.AddSingleton<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
@@ -155,7 +154,7 @@ builder.Services.AddAuthorization(policy =>
 
 var app = builder.Build();
 
-app.UseCors("AllowAllOrigins");
+app.UseCors();
 
 app.UseSwagger();
 app.UseSwaggerUI();
