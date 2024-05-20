@@ -71,6 +71,7 @@ namespace Ecommerce.Service.src.Services
         {
             var order = await _orderRepository.GetByIdAsync(orderId);
             if (order == null) return false;
+            if (order.Status == newStatus) return false;
             order.Status = newStatus;
             await _orderRepository.UpdateAsync(order);
             return true;

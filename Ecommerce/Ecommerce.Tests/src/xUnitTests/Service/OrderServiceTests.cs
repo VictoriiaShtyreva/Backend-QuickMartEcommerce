@@ -16,13 +16,14 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         private readonly Mock<IOrderRepository> _mockOrderRepository = new Mock<IOrderRepository>();
         private readonly Mock<IBaseRepository<Address, QueryOptions>> _mockAddressRepository = new Mock<IBaseRepository<Address, QueryOptions>>();
         private readonly Mock<IProductRepository> _mockProductRepository = new Mock<IProductRepository>();
+        private readonly Mock<IProductImageRepository> _mockProductImageRepository = new Mock<IProductImageRepository>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
         private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
         private readonly OrderService _service;
 
         public OrderServiceTests()
         {
-            _service = new OrderService(_mockOrderRepository.Object, _mockAddressRepository.Object, _mockProductRepository.Object, _mockMapper.Object, _mockCache.Object);
+            _service = new OrderService(_mockOrderRepository.Object, _mockAddressRepository.Object, _mockProductRepository.Object, _mockProductImageRepository.Object, _mockMapper.Object, _mockCache.Object);
         }
 
         [Theory]

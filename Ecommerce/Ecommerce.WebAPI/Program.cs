@@ -145,14 +145,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 );
 
 // Resource based auth handlers
-builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerOrderHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerReviewHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerAccountHandler>();
 
 // config authorization
 builder.Services.AddAuthorization(policy =>
 {
-    policy.AddPolicy("AdminOrOwnerOrder", policy => policy.Requirements.Add(new AdminOrOwnerOrderRequirement()));
     policy.AddPolicy("AdminOrOwnerReview", policy => policy.Requirements.Add(new AdminOrOwnerReviewRequirement()));
     policy.AddPolicy("AdminOrOwnerAccount", policy => policy.Requirements.Add(new AdminOrOwnerAccountRequirement()));
 });
