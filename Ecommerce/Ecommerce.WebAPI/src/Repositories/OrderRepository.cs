@@ -58,14 +58,22 @@ namespace Ecommerce.WebAPI.src.Repositories
             return true;
         }
 
-        public async Task<IEnumerable<Order>> GetAllAsync(QueryOptions options)
+        public async Task<PaginatedResult<Order>> GetAllAsync(QueryOptions options)
         {
             IQueryable<Order> query = _context.Orders;
+
+            // Get total count
+            var totalCount = await query.CountAsync();
+
             // Sorting
             query = SortOrders(query, options.SortBy, options.SortOrder);
+
             // Pagination
             query = query.Skip((options.Page - 1) * options.PageSize).Take(options.PageSize);
-            return await query.ToListAsync();
+
+            var orders = await query.ToListAsync();
+
+            return new PaginatedResult<Order>(orders, totalCount);
         }
 
         private IQueryable<Order> SortOrders(IQueryable<Order> query, SortType sortBy, SortOrder sortOrder)

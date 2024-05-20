@@ -33,7 +33,7 @@ namespace Ecommerce.WebAPI.src.Repositories
             return true;
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync(QueryOptions options)
+        public async Task<PaginatedResult<Product>> GetAllAsync(QueryOptions options)
         {
             var query = _products
                 .Include(p => p.Category)
@@ -41,14 +41,16 @@ namespace Ecommerce.WebAPI.src.Repositories
                 .Include(p => p.Reviews)
                 .AsQueryable();
 
-            // Sorting
-            query = ProductsSorting(query, options.SortBy, options.SortOrder);
+            // Get total count
+            var totalCount = await query.CountAsync();
+
             // Pagination
             if (options.Page >= 0 && options.PageSize > 0)
             {
-                query = query.Skip(options.Page * options.PageSize).Take(options.PageSize);
+                query = query.Skip((options.Page - 1) * options.PageSize).Take(options.PageSize);
             }
-            return await query.ToListAsync();
+            var products = await query.ToListAsync();
+            return new PaginatedResult<Product>(products, totalCount);
 
         }
 

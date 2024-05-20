@@ -37,9 +37,19 @@ namespace Ecommerce.WebAPI.src.Repositories
             return await _addresses.AnyAsync(e => e.Id == entity.Id);
         }
 
-        public async Task<IEnumerable<Address>> GetAllAsync(QueryOptions options)
+        public async Task<PaginatedResult<Address>> GetAllAsync(QueryOptions options)
         {
-            return await _addresses.ToListAsync();
+            IQueryable<Address> query = _addresses;
+
+            // Get total count
+            var totalCount = await query.CountAsync();
+
+            // Pagination
+            query = query.Skip((options.Page - 1) * options.PageSize).Take(options.PageSize);
+
+            var addresses = await query.ToListAsync();
+
+            return new PaginatedResult<Address>(addresses, totalCount);
         }
 
         public async Task<Address> GetByIdAsync(Guid id)

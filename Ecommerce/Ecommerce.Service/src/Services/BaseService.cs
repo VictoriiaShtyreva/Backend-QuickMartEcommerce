@@ -46,17 +46,17 @@ namespace Ecommerce.Service.src.Services
             return true;
         }
 
-        public virtual async Task<IEnumerable<TReadDTO>> GetAllAsync(QueryOptions options)
+        public virtual async Task<PaginatedResult<TReadDTO>> GetAllAsync(QueryOptions options)
         {
             string cacheKey = $"GetAll-{typeof(TEntity).Name}-{options!.GetHashCode()}";
 
-            if (!_cache.TryGetValue(cacheKey, out IEnumerable<TEntity>? entities))
+            if (!_cache.TryGetValue(cacheKey, out PaginatedResult<TEntity>? paginatedResult))
             {
-                entities = await _repository.GetAllAsync(options);
-                _cache.Set(cacheKey, entities, _cacheOptions);
+                paginatedResult = await _repository.GetAllAsync(options);
+                _cache.Set(cacheKey, paginatedResult, _cacheOptions);
             }
-
-            return _mapper.Map<IEnumerable<TReadDTO>>(entities);
+            var mappedItems = _mapper.Map<IEnumerable<TReadDTO>>(paginatedResult!.Items);
+            return new PaginatedResult<TReadDTO>(mappedItems, paginatedResult.TotalCount);
         }
 
         public virtual async Task<TReadDTO> GetOneByIdAsync(Guid id)

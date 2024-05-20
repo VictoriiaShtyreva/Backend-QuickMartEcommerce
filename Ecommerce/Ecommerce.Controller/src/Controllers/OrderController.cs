@@ -46,9 +46,10 @@ namespace Ecommerce.Controller.src.Controllers
         [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        public async Task<IEnumerable<OrderReadDto>> GetAllOrdersAsync([FromQuery] QueryOptions options)
+        public async Task<IActionResult> GetAllOrdersAsync([FromQuery] QueryOptions options)
         {
-            return await _orderService.GetAllAsync(options);
+            var result = await _orderService.GetAllAsync(options);
+            return Ok(result);
         }
 
         [HttpGet("users/{userId}")]

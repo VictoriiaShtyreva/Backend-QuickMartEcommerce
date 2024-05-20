@@ -36,9 +36,19 @@ namespace Ecommerce.WebAPI.src.Repositories
             return await _productImages.AnyAsync(e => e.Id == entity.Id);
         }
 
-        public async Task<IEnumerable<ProductImage>> GetAllAsync(QueryOptions options)
+        public async Task<PaginatedResult<ProductImage>> GetAllAsync(QueryOptions options)
         {
-            return await _productImages.ToListAsync();
+            IQueryable<ProductImage> query = _productImages;
+
+            // Get total count
+            var totalCount = await query.CountAsync();
+
+            // Pagination
+            query = query.Skip((options.Page - 1) * options.PageSize).Take(options.PageSize);
+
+            var productImages = await query.ToListAsync();
+
+            return new PaginatedResult<ProductImage>(productImages, totalCount);
         }
 
         public async Task<ProductImage> GetByIdAsync(Guid id)

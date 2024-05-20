@@ -34,16 +34,23 @@ namespace Ecommerce.WebAPI.src.Repositories
             return true;
         }
 
-        public async Task<IEnumerable<Category>> GetAllAsync(QueryOptions options)
+        public async Task<PaginatedResult<Category>> GetAllAsync(QueryOptions options)
         {
             IQueryable<Category> query = _context.Categories;
+
+            // Get total count
+            var totalCount = await query.CountAsync();
+
             // Sorting
             query = SortCategories(query, options.SortBy, options.SortOrder);
+
             // Pagination
             query = query.Skip((options.Page - 1) * options.PageSize).Take(options.PageSize);
-            return await query.ToListAsync();
-        }
 
+            var categories = await query.ToListAsync();
+
+            return new PaginatedResult<Category>(categories, totalCount);
+        }
         private IQueryable<Category> SortCategories(IQueryable<Category> query, SortType sortBy, SortOrder sortOrder)
         {
             switch (sortBy)

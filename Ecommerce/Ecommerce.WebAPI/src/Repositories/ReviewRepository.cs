@@ -33,17 +33,24 @@ namespace Ecommerce.WebAPI.src.Repositories
             return true;
         }
 
-        public async Task<IEnumerable<Review>> GetAllAsync(QueryOptions options)
+        public async Task<PaginatedResult<Review>> GetAllAsync(QueryOptions options)
         {
             IQueryable<Review> query = _context.Reviews.Include(r => r.User).Include(r => r.Product).ThenInclude(p => p!.Category);
 
+            // Get total count
+            var totalCount = await query.CountAsync();
+
             // Sorting
             query = SortReviews(query, options.SortBy, options.SortOrder);
+
             // Pagination
             query = query.Skip((options.Page - 1) * options.PageSize).Take(options.PageSize);
 
-            return await query.ToListAsync();
+            var reviews = await query.ToListAsync();
+
+            return new PaginatedResult<Review>(reviews, totalCount);
         }
+
 
         private IQueryable<Review> SortReviews(IQueryable<Review> query, SortType sortBy, SortOrder sortOrder)
         {
