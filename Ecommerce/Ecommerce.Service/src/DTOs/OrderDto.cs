@@ -27,4 +27,9 @@ namespace Ecommerce.Service.src.DTOs
         public List<OrderItemUpdateDto>? OrderItems { get; set; }
         public AddressDto? ShippingAddress { get; set; }
     }
+
+    public class OrderStatusUpdateDto
+    {
+        public OrderStatus NewStatus { get; set; }
+    }
 }

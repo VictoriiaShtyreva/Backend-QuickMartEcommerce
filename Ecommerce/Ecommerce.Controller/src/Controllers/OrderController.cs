@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using Ecommerce.Core.src.Common;
+using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +34,11 @@ namespace Ecommerce.Controller.src.Controllers
         public async Task<ActionResult<OrderReadDto>> GetOrderAsync([FromRoute] Guid orderId)
         {
             var order = await _orderService.GetOneByIdAsync(orderId);
+            var userId = GetUserIdClaim();
+            if (order == null || (order.UserId != userId && !IsUserAdmin()))
+            {
+                return Forbid();
+            }
             return Ok(order);
         }
 
@@ -41,14 +48,7 @@ namespace Ecommerce.Controller.src.Controllers
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IEnumerable<OrderReadDto>> GetAllOrdersAsync([FromQuery] QueryOptions options)
         {
-            try
-            {
-                return await _orderService.GetAllAsync(options);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            return await _orderService.GetAllAsync(options);
         }
 
         [HttpGet("users/{userId}")]
@@ -70,6 +70,96 @@ namespace Ecommerce.Controller.src.Controllers
         {
             var createdOrder = await _orderService.CreateOrderAsync(orderCreateDto);
             return CreatedAtAction(nameof(GetOrderAsync), new { orderId = createdOrder.Id }, createdOrder);
+        }
+
+        [HttpPatch("{orderId}/status")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> UpdateOrderStatusAsync([FromRoute] Guid orderId, [FromBody] OrderStatusUpdateDto orderStatusUpdateDto)
+        {
+            var order = await _orderService.GetOneByIdAsync(orderId);
+            var userId = GetUserIdClaim();
+
+            if (order == null || (order.UserId != userId && !IsUserAdmin()))
+            {
+                return Forbid();
+            }
+
+            var updated = await _orderService.UpdateOrderStatusAsync(orderId, orderStatusUpdateDto.NewStatus);
+            if (!updated) return NotFound();
+            return NoContent();
+        }
+
+        [HttpPatch("{orderId}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> UpdateOrderAsync([FromRoute] Guid orderId, [FromBody] OrderUpdateDto orderUpdateDto)
+        {
+            var order = await _orderService.GetOneByIdAsync(orderId);
+            var userId = GetUserIdClaim();
+
+            if (order == null || (order.UserId != userId && !IsUserAdmin()))
+            {
+                return Forbid();
+            }
+
+            var updated = await _orderService.UpdateOrderAsync(orderId, orderUpdateDto);
+            if (!updated) return NotFound();
+            return NoContent();
+        }
+
+        [HttpDelete("{orderId}")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> CancelOrderAsync([FromRoute] Guid orderId)
+        {
+            var order = await _orderService.GetOneByIdAsync(orderId);
+            var userId = GetUserIdClaim();
+            if (order == null || (order.UserId != userId && !IsUserAdmin()))
+            {
+                return Forbid();
+            }
+            var canceled = await _orderService.CancelOrderAsync(orderId);
+            if (!canceled) return BadRequest();
+            return Ok();
+        }
+
+        [HttpDelete("{orderId}/delete")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> DeleteOrderAsync([FromRoute] Guid orderId)
+        {
+            var order = await _orderService.GetOneByIdAsync(orderId);
+            var userId = GetUserIdClaim();
+
+            if (order == null || (order.UserId != userId && !IsUserAdmin()))
+            {
+                return Forbid();
+            }
+
+            var deleted = await _orderService.DeleteOneAsync(orderId);
+            if (!deleted) return NotFound();
+            return Ok();
+        }
+
+        private Guid GetUserIdClaim()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? throw new Exception("User ID claim not found");
+            if (!Guid.TryParse(userIdClaim.Value, out var userId))
+            {
+                throw new Exception("Invalid user ID format");
+            }
+            return userId;
+        }
+
+        private bool IsUserAdmin()
+        {
+            var userRoleClaim = User.FindFirst(ClaimTypes.Role);
+            return userRoleClaim != null && userRoleClaim.Value == UserRole.Admin.ToString();
         }
 
     }

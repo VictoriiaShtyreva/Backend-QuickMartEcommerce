@@ -69,12 +69,52 @@ namespace Ecommerce.Service.src.Services
 
         public async Task<bool> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus)
         {
-            var order = await _orderRepository.GetByIdAsync(orderId) ?? throw AppException.NotFound();
-            if (order.Status == newStatus) return false;
+            var order = await _orderRepository.GetByIdAsync(orderId);
+            if (order == null) return false;
             order.Status = newStatus;
-            await _orderRepository.UpdateOrderStatusAsync(orderId, newStatus);
+            await _orderRepository.UpdateAsync(order);
+            return true;
+        }
+
+        public async Task<bool> UpdateOrderAsync(Guid orderId, OrderUpdateDto orderUpdateDto)
+        {
+            var order = await _orderRepository.GetByIdAsync(orderId);
+            if (order == null) return false;
+
+            if (orderUpdateDto.Status.HasValue && order.Status != orderUpdateDto.Status.Value)
+            {
+                order.Status = orderUpdateDto.Status.Value;
+            }
+
+            if (orderUpdateDto.OrderItems != null)
+            {
+                foreach (var itemUpdate in orderUpdateDto.OrderItems)
+                {
+                    var existingItem = order.OrderItems!.FirstOrDefault(oi => oi.Id == itemUpdate.ItemId);
+                    if (existingItem != null)
+                    {
+                        existingItem.Quantity = itemUpdate.Quantity.HasValue ? itemUpdate.Quantity.Value : existingItem.Quantity;
+                    }
+                    else
+                    {
+                        var product = await _productRepository.GetByIdAsync(itemUpdate.ItemId);
+                        if (product == null) continue;
+                        var productSnapshot = await product.CreateSnapshotAsync(_productImageRepository);
+                        order.AddOrderItem(productSnapshot, itemUpdate.Quantity.GetValueOrDefault());
+                    }
+                }
+            }
+
+            if (orderUpdateDto.ShippingAddress != null)
+            {
+                var newAddress = _mapper.Map<Address>(orderUpdateDto.ShippingAddress);
+                var savedAddress = await _addressRepository.CreateAsync(newAddress);
+                order.AddressId = savedAddress.Id;
+                order.ShippingAddress = savedAddress;
+            }
+
+            await _orderRepository.UpdateAsync(order);
             return true;
         }
     }
-
 }

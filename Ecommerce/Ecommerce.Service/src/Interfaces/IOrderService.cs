@@ -10,5 +10,9 @@ namespace Ecommerce.Service.src.Interfaces
         Task<bool> CancelOrderAsync(Guid orderId);
         Task<OrderReadDto> CreateOrderAsync(OrderCreateDto orderCreateDto);
         Task<bool> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus);
+
+        Task<bool> UpdateOrderAsync(Guid orderId, OrderUpdateDto orderUpdateDto);
+
+
     }
 }

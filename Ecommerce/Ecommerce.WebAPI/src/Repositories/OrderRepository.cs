@@ -38,8 +38,6 @@ namespace Ecommerce.WebAPI.src.Repositories
                 // Add the new order
                 _orders.Add(entity);
                 await _context.SaveChangesAsync();
-                // Save changes to order items
-                await _context.SaveChangesAsync();
                 // Clear the cart after converting to an order
                 await transaction.CommitAsync();
                 return entity;
