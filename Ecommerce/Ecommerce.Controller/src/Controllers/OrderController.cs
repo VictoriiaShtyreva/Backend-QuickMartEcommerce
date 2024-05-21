@@ -75,7 +75,7 @@ namespace Ecommerce.Controller.src.Controllers
 
         [HttpPatch("{orderId}/status")]
         [Authorize]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> UpdateOrderStatusAsync([FromRoute] Guid orderId, [FromBody] OrderStatusUpdateDto orderStatusUpdateDto)
         {
@@ -87,12 +87,12 @@ namespace Ecommerce.Controller.src.Controllers
             }
             var updated = await _orderService.UpdateOrderStatusAsync(orderId, orderStatusUpdateDto.NewStatus);
             if (!updated) return NotFound();
-            return NoContent();
+            return Ok(updated);
         }
 
         [HttpPatch("{orderId}")]
         [Authorize]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> UpdateOrderAsync([FromRoute] Guid orderId, [FromBody] OrderUpdateDto orderUpdateDto)
         {
@@ -104,7 +104,7 @@ namespace Ecommerce.Controller.src.Controllers
             }
             var updated = await _orderService.UpdateOrderAsync(orderId, orderUpdateDto);
             if (!updated) return NotFound();
-            return NoContent();
+            return Ok(updated);
         }
 
         [HttpDelete("{orderId}")]

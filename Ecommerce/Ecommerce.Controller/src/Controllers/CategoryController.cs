@@ -20,9 +20,10 @@ namespace Ecommerce.Controller.src.Controllers
 
         [HttpGet("{categoryId}")]
         [AllowAnonymous]
+        [ActionName(nameof(GetCategoryByIdAsync))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<CategoryReadDto>> GetCategoryAsync([FromRoute] Guid categoryId)
+        public async Task<ActionResult<CategoryReadDto>> GetCategoryByIdAsync([FromRoute] Guid categoryId)
         {
             var category = await _categoryService.GetOneByIdAsync(categoryId);
             return Ok(category);
@@ -39,12 +40,13 @@ namespace Ecommerce.Controller.src.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
+        [ActionName(nameof(CreateCategoryAsync))]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<CategoryReadDto>> CreateCategoryAsync([FromForm] CategoryCreateDto createDto)
         {
             var createdCategory = await _categoryService.CreateOneAsync(createDto);
-            return CreatedAtAction(nameof(GetCategoryAsync), new { id = createdCategory.Id }, createdCategory);
+            return CreatedAtAction(nameof(GetCategoryByIdAsync), new { categoryId = createdCategory.Id }, createdCategory);
         }
 
         [HttpPatch("{categoryId}")]

@@ -36,15 +36,16 @@ namespace Ecommerce.Service.src.Services
         }
         public override async Task<CategoryReadDto> CreateOneAsync(CategoryCreateDto createDto)
         {
-            var category = _mapper.Map<Category>(createDto);
+            var category = new Category();
+            category.Name = createDto.Name;
             if (createDto.Image != null)
             {
                 var uploadResult = await _imageService.UploadImageAsync(createDto.Image);
                 category.Image = uploadResult.SecureUrl.ToString();
             }
-            category = await _categoryRepository.CreateAsync(category);
+            var createdCategory = await _categoryRepository.CreateAsync(category);
             _cache.Remove($"GetAll-{typeof(Category).Name}");
-            return _mapper.Map<CategoryReadDto>(category);
+            return _mapper.Map<CategoryReadDto>(createdCategory);
         }
 
         public override async Task<CategoryReadDto> UpdateOneAsync(Guid id, CategoryUpdateDto updateDto)
