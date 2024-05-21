@@ -41,12 +41,6 @@ namespace Ecommerce.WebAPI.src.Repositories
                 .Include(p => p.Reviews)
                 .AsQueryable();
 
-            // Category filtering
-            if (!string.IsNullOrEmpty(options.Category) && options.Category != "all")
-            {
-                query = query.Where(p => p.Category!.Name == options.Category);
-            }
-
             // Get total count
             var totalCount = await query.CountAsync();
 

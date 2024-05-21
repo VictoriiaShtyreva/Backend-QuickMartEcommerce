@@ -117,6 +117,24 @@ namespace Ecommerce.WebAPI.src.Data
                     Password = "carol@123",
                     Avatar = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
                     Role = UserRole.Customer
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Dave",
+                    Email = "dave@example.com",
+                    Password = "dave@123",
+                    Avatar = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
+                    Role = UserRole.Customer
+                },
+                new User
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Eve",
+                    Email = "eve@example.com",
+                    Password = "eve@123",
+                    Avatar = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
+                    Role = UserRole.Customer
                 }
             };
             return users;
@@ -130,7 +148,10 @@ namespace Ecommerce.WebAPI.src.Data
             {
                 new Address { Id = Guid.NewGuid(), AddressLine = "123 Main St", City = "Townsville", PostalCode = "12345", Country = "USA" },
                 new Address { Id = Guid.NewGuid(), AddressLine = "456 Elm St", City = "Villageville", PostalCode = "67890", Country = "USA" },
-                new Address { Id = Guid.NewGuid(), AddressLine = "789 Oak St", City = "Citytown", PostalCode = "11223", Country = "USA" }
+                new Address { Id = Guid.NewGuid(), AddressLine = "789 Oak St", City = "Citytown", PostalCode = "11223", Country = "USA" },
+                new Address { Id = Guid.NewGuid(), AddressLine = "101 Maple St", City = "Springfield", PostalCode = "33445", Country = "USA" },
+                new Address { Id = Guid.NewGuid(), AddressLine = "202 Pine St", City = "Greenville", PostalCode = "55667", Country = "USA" },
+                new Address { Id = Guid.NewGuid(), AddressLine = "303 Cedar St", City = "Hillview", PostalCode = "77889", Country = "USA" }
             };
             return addresses;
         }
@@ -143,7 +164,10 @@ namespace Ecommerce.WebAPI.src.Data
             {
                 new Order { Id = Guid.NewGuid(), UserId = users[0].Id, AddressId = addresses[0].Id, TotalPrice = 150.50m, Status = OrderStatus.Completed },
                 new Order { Id = Guid.NewGuid(), UserId = users[1].Id, AddressId = addresses[1].Id, TotalPrice = 250.75m, Status = OrderStatus.Processing },
-                new Order { Id = Guid.NewGuid(), UserId = users[2].Id, AddressId = addresses[2].Id, TotalPrice = 350.25m, Status = OrderStatus.Shipped }
+                new Order { Id = Guid.NewGuid(), UserId = users[2].Id, AddressId = addresses[2].Id, TotalPrice = 350.25m, Status = OrderStatus.Shipped },
+                new Order { Id = Guid.NewGuid(), UserId = users[3].Id, AddressId = addresses[3].Id, TotalPrice = 230.50m, Status = OrderStatus.Completed },
+                new Order { Id = Guid.NewGuid(), UserId = users[4].Id, AddressId = addresses[4].Id, TotalPrice = 560.99m, Status = OrderStatus.Completed },
+                new Order { Id = Guid.NewGuid(), UserId = users[1].Id, AddressId = addresses[5].Id, TotalPrice = 450.78m, Status = OrderStatus.Completed }
             };
             return orders;
         }
@@ -193,10 +217,10 @@ namespace Ecommerce.WebAPI.src.Data
                 new Review { Id = Guid.NewGuid(), UserId = users[2].Id, ProductId = products[2].Id, Rating = 3, Content = "Average product." },
                 new Review { Id = Guid.NewGuid(), UserId = users[1].Id, ProductId = products[3].Id, Rating = 4, Content = "Solid build, satisfied with the purchase." },
                 new Review { Id = Guid.NewGuid(), UserId = users[2].Id, ProductId = products[4].Id, Rating = 2, Content = "Not as described, disappointed." },
-                new Review { Id = Guid.NewGuid(), UserId = users[0].Id, ProductId = products[5].Id, Rating = 5, Content = "Outstanding! Exceeded my expectations." },
-                new Review { Id = Guid.NewGuid(), UserId = users[2].Id, ProductId = products[6].Id, Rating = 3, Content = "It's okay, does the job." },
-                new Review { Id = Guid.NewGuid(), UserId = users[0].Id, ProductId = products[7].Id, Rating = 4, Content = "Good product, but a bit pricey." },
-                new Review { Id = Guid.NewGuid(), UserId = users[1].Id, ProductId = products[8].Id, Rating = 5, Content = "Love it! Highly recommend." },
+                new Review { Id = Guid.NewGuid(), UserId = users[3].Id, ProductId = products[5].Id, Rating = 5, Content = "Outstanding! Exceeded my expectations." },
+                new Review { Id = Guid.NewGuid(), UserId = users[1].Id, ProductId = products[6].Id, Rating = 3, Content = "It's okay, does the job." },
+                new Review { Id = Guid.NewGuid(), UserId = users[2].Id, ProductId = products[7].Id, Rating = 4, Content = "Good product, but a bit pricey." },
+                new Review { Id = Guid.NewGuid(), UserId = users[3].Id, ProductId = products[8].Id, Rating = 5, Content = "Love it! Highly recommend." },
                 new Review { Id = Guid.NewGuid(), UserId = users[0].Id, ProductId = products[9].Id, Rating = 4, Content = "Works well, as expected." }
             };
             return reviews;
