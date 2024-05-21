@@ -71,7 +71,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
                 new Category("Category 2", "http://example.com/image2.jpg"),
                 new Category("Category 3", "http://example.com/image3.jpg")
             };
-
             var queryOptions = new QueryOptions { Page = 1, PageSize = 3, SortOrder = SortOrder.Descending };
 
             _mockCategoryRepository.Setup(x => x.GetAllAsync(queryOptions)).ReturnsAsync(categories);

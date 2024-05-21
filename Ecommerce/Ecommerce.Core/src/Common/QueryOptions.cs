@@ -13,5 +13,7 @@ namespace Ecommerce.Core.src.Common
 
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public SortOrder SortOrder { get; set; }
+
+        public string? Category { get; set; }
     }
 }

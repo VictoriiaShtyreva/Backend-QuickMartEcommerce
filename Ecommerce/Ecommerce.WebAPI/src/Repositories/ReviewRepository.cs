@@ -66,11 +66,6 @@ namespace Ecommerce.WebAPI.src.Repositories
                             query.OrderBy(r => r.Product!.Title) :
                             query.OrderByDescending(r => r.Product!.Title);
                     break;
-                case SortType.byCategory:
-                    query = sortOrder == SortOrder.Ascending ?
-                            query.OrderBy(r => r.Product!.Category!.Name) :
-                            query.OrderByDescending(r => r.Product!.Category!.Name);
-                    break;
                 default:
                     query = sortOrder == SortOrder.Ascending ?
                             query.OrderBy(r => r.CreatedAt) :

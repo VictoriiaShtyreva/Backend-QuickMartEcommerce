@@ -7,7 +7,6 @@ namespace Ecommerce.Core.src.ValueObjects
     {
         byTitle,
         byPrice,
-        byCategory,
         byName
     }
 }

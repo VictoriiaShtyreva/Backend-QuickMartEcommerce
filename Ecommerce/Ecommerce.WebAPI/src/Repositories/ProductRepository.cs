@@ -41,8 +41,17 @@ namespace Ecommerce.WebAPI.src.Repositories
                 .Include(p => p.Reviews)
                 .AsQueryable();
 
+            // Category filtering
+            if (!string.IsNullOrEmpty(options.Category) && options.Category != "all")
+            {
+                query = query.Where(p => p.Category!.Name == options.Category);
+            }
+
             // Get total count
             var totalCount = await query.CountAsync();
+
+            // Sorting
+            query = ProductsSorting(query, options.SortBy, options.SortOrder);
 
             // Pagination
             if (options.Page >= 0 && options.PageSize > 0)
@@ -67,11 +76,6 @@ namespace Ecommerce.WebAPI.src.Repositories
                     query = sortOrder == SortOrder.Ascending
                         ? query.OrderBy(p => p.Price)
                         : query.OrderByDescending(p => p.Price);
-                    break;
-                case SortType.byCategory:
-                    query = sortOrder == SortOrder.Ascending
-                        ? query.OrderBy(p => p.Category!.Name)
-                        : query.OrderByDescending(p => p.Category!.Name);
                     break;
                 default:
                     query = sortOrder == SortOrder.Ascending
