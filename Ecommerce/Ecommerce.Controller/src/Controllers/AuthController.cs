@@ -1,5 +1,4 @@
 using Ecommerce.Core.src.Common;
-using Ecommerce.Core.src.Entities;
 using Ecommerce.Service.src.DTOs;
 using Ecommerce.Service.src.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -40,7 +39,6 @@ namespace Ecommerce.Controller.src.Controllers
         }
 
         [HttpGet("authenticate")]
-        [Authorize]
         public async Task<ActionResult<UserReadDto>> AuthenticateAsync([FromQuery] string token)
         {
             if (string.IsNullOrEmpty(token))
