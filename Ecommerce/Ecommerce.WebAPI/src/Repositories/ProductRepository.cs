@@ -82,7 +82,12 @@ namespace Ecommerce.WebAPI.src.Repositories
 
         public async Task<Product> GetByIdAsync(Guid id)
         {
-            return await _products.FindAsync(id) ?? throw AppException.NotFound();
+            var product = await _products
+                .Include(p => p.Category)
+                .Include(p => p.Images)
+                .Include(p => p.Reviews)
+                .FirstOrDefaultAsync(p => p.Id == id) ?? throw AppException.NotFound();
+            return product;
         }
 
         public async Task<IEnumerable<Product>> GetMostPurchasedProductsAsync(int topNumber)

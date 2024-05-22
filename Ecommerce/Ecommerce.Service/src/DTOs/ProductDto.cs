@@ -9,6 +9,7 @@ namespace Ecommerce.Service.src.DTOs
         public string? Description { get; set; }
         public decimal Price { get; set; }
         public CategoryReadDto? Category { get; set; }
+        public IEnumerable<ReviewReadDto>? Reviews { get; set; }
         public int Inventory { get; set; }
         public IEnumerable<ProductImageReadDto>? Images { get; set; }
     }
