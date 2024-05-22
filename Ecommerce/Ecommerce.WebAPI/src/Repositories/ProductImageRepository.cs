@@ -25,8 +25,9 @@ namespace Ecommerce.WebAPI.src.Repositories
 
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var images = await _productImages.Where(pi => pi.ProductId == id).ToListAsync();
-            _productImages.RemoveRange(images);
+            var productImage = await _productImages.FindAsync(id);
+            if (productImage == null) return false;
+            _productImages.Remove(productImage);
             await _context.SaveChangesAsync();
             return true;
         }

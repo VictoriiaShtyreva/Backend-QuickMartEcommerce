@@ -83,17 +83,8 @@ namespace Ecommerce.Service.src.Services
                 product.Inventory = updateDto.Inventory.Value;
             }
             // Update product images
-            if (updateDto.Images != null && updateDto.Images.Any())
+            if (updateDto.Images != null)
             {
-                // Delete existing images
-                var existingImages = await _productImageRepository.GetProductImagesByProductIdAsync(product.Id);
-                foreach (var existingImage in existingImages)
-                {
-                    var publicId = new Uri(existingImage.Url!).Segments.Last().Split('.').First();
-                    await _imageService.DeleteImageAsync(publicId);
-                    await _productImageRepository.DeleteAsync(existingImage.Id);
-                }
-
                 foreach (var imageFile in updateDto.Images)
                 {
                     var uploadResult = await _imageService.UploadImageAsync(imageFile);
