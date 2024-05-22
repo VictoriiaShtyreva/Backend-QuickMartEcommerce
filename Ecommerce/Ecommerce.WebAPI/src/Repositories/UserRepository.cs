@@ -77,7 +77,10 @@ namespace Ecommerce.WebAPI.src.Repositories
 
         public async Task<User> GetByIdAsync(Guid id)
         {
-            return await _users.FindAsync(id) ?? throw AppException.NotFound(); ;
+            return await _users
+                .Include(u => u.Orders)
+                .Include(u => u.Reviews)
+                .FirstOrDefaultAsync(u => u.Id == id) ?? throw AppException.NotFound();
         }
 
         public async Task<User> GetUserByCredentialsAsync(UserCredential userCredential)

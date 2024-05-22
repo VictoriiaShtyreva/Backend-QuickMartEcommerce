@@ -11,6 +11,8 @@ namespace Ecommerce.Service.src.DTOs
         public string? Email { get; set; }
         public UserRole Role { get; set; }
         public string? Avatar { get; set; }
+        public IEnumerable<OrderReadDto>? Orders { get; set; }
+        public IEnumerable<ReviewReadDto>? Reviews { get; set; }
     }
 
     public class UserUpdateDto
