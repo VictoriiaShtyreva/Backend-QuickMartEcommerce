@@ -107,7 +107,7 @@ namespace Ecommerce.Controller.src.Controllers
             return Ok(updated);
         }
 
-        [HttpDelete("{orderId}")]
+        [HttpPatch("{orderId}/cancel")]
         [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
