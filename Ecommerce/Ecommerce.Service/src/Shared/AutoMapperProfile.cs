@@ -11,6 +11,7 @@ namespace Ecommerce.Service.src.Shared
         {
             // User mappings
             CreateMap<User, UserReadDto>();
+            CreateMap<User, UserReviewReadDto>();
             // Ignore password when creating a user -> hashing
             CreateMap<UserCreateDto, User>().ForMember(user => user.Password, opt => opt.Ignore());
             // Only map non-null fields to allow partial updates
@@ -25,7 +26,8 @@ namespace Ecommerce.Service.src.Shared
             CreateMap<CategoryUpdateDto, Category>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
 
             // Product mappings
-            CreateMap<Product, ProductReadDto>();
+            CreateMap<Product, ProductReadDto>()
+          .ForMember(dest => dest.Reviews, opt => opt.MapFrom(src => src.Reviews));
             CreateMap<ProductCreateDto, Product>();
             // Only map non-null fields to allow partial updates
             CreateMap<ProductUpdateDto, Product>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
@@ -58,7 +60,8 @@ namespace Ecommerce.Service.src.Shared
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
 
             // Review mappings
-            CreateMap<Review, ReviewReadDto>();
+            CreateMap<Review, ReviewReadDto>()
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User));
             CreateMap<ReviewCreateDto, Review>();
             // Only map non-null fields to allow partial updates
             CreateMap<ReviewUpdateDto, Review>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
