@@ -90,6 +90,11 @@ namespace Ecommerce.WebAPI.src.Repositories
                             query.OrderBy(o => o.TotalPrice) :
                             query.OrderByDescending(o => o.TotalPrice);
                     break;
+                case SortType.byDate:
+                    query = sortOrder == SortOrder.Ascending ?
+                            query.OrderBy(o => o.CreatedAt) :
+                            query.OrderByDescending(o => o.CreatedAt);
+                    break;
                 default:
                     query = sortOrder == SortOrder.Ascending ?
                             query.OrderBy(o => o.CreatedAt) :
