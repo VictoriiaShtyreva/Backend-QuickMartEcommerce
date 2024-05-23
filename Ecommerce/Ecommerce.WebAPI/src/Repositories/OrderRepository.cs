@@ -53,6 +53,8 @@ namespace Ecommerce.WebAPI.src.Repositories
         {
             var order = await _orders.FindAsync(id);
             if (order == null) return false;
+            var orderAddress = await _context.Addresses.FindAsync(order.AddressId);
+            if (orderAddress != null) _context.Addresses.Remove(orderAddress);
             _orders.Remove(order);
             await _context.SaveChangesAsync();
             return true;
