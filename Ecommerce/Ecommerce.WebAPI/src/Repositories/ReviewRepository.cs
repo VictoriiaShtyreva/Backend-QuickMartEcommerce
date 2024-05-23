@@ -107,12 +107,19 @@ namespace Ecommerce.WebAPI.src.Repositories
         {
             var existingReview = await _reviews.FindAsync(entity.Id);
             if (existingReview == null) return null!;
-            existingReview.Rating = entity.Rating;
-            existingReview.Content = entity.Content;
+            if (entity.Rating != default)
+            {
+                existingReview.Rating = entity.Rating;
+            }
+            if (!string.IsNullOrEmpty(entity.Content))
+            {
+                existingReview.Content = entity.Content;
+            }
             _context.Update(existingReview);
             await _context.SaveChangesAsync();
             return existingReview;
         }
+
 
         public async Task<bool> ExistsAsync(Review entity)
         {

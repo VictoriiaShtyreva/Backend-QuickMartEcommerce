@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Ecommerce.Controller.src.Controllers
 {
     [ApiController]
-    [Route("api/reviews")]
+    [Route("api/v1/reviews")]
     public class ReviewController : ControllerBase
     {
         private readonly IReviewService _reviewService;
