@@ -61,15 +61,7 @@ namespace Ecommerce.Service.src.Services
 
         public virtual async Task<TReadDTO> GetOneByIdAsync(Guid id)
         {
-            if (!_cache.TryGetValue($"GetById-{id}", out TEntity? entity))
-            {
-                entity = await _repository.GetByIdAsync(id);
-                if (entity == null)
-                {
-                    throw AppException.NotFound();
-                }
-                _cache.Set($"GetById-{id}", entity, _cacheOptions);
-            }
+            var entity = await _repository.GetByIdAsync(id) ?? throw AppException.NotFound();
             return _mapper.Map<TReadDTO>(entity);
         }
 
