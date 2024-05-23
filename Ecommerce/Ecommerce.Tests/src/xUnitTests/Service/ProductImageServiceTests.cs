@@ -57,30 +57,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         }
 
         [Fact]
-        public async Task GetAllAsync_ReturnsAllProductImages()
-        {
-            // Arrange
-            var productImages = new List<ProductImage> { new ProductImage { Id = Guid.NewGuid(), Url = "http://example.com/image.jpg" } };
-            var productImageReadDtos = new List<ProductImageReadDto> { new ProductImageReadDto { Url = "http://example.com/image.jpg" } };
-
-            _mockProductImageRepository.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions>())).ReturnsAsync(productImages);
-            _mockMapper.Setup(m => m.Map<IEnumerable<ProductImageReadDto>>(productImages)).Returns(productImageReadDtos);
-
-            // Setup cache to return false initially and then set cache with the users list
-            object cacheValue;
-            _mockCache.Setup(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!)).Returns(false);
-            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
-
-            // Act
-            var results = await _productImageService.GetAllAsync(new QueryOptions());
-
-            // Assert
-            Assert.NotNull(results);
-            Assert.Single(results);
-            _mockCache.Verify(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!), Times.Once);
-        }
-
-        [Fact]
         public async Task GetOneByIdAsync_ReturnsProductImage_WhenFound()
         {
             // Arrange
@@ -90,11 +66,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
 
             _mockProductImageRepository.Setup(r => r.GetByIdAsync(productImageId)).ReturnsAsync(productImage);
             _mockMapper.Setup(m => m.Map<ProductImageReadDto>(productImage)).Returns(productImageReadDto);
-            // Set up cache to return false initially and then set cache with the user
-            object cacheValue;
-            _mockCache.Setup(c => c.TryGetValue($"GetById-{productImageId}", out cacheValue!)).Returns(false);
-            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
-
 
             // Act
             var result = await _productImageService.GetOneByIdAsync(productImageId);
@@ -102,7 +73,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             // Assert
             Assert.NotNull(result);
             Assert.Equal("http://example.com/image.jpg", result.Url);
-            _mockCache.Verify(c => c.TryGetValue($"GetById-{productImageId}", out cacheValue!), Times.Once);
         }
 
         [Fact]

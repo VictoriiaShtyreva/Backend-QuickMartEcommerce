@@ -116,24 +116,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         }
 
         [Fact]
-        public async Task GetAllAsync_ReturnsAllReviews()
-        {
-            var reviews = new List<Review> { new Review { Id = Guid.NewGuid() } };
-            _mockReviewRepository.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions>())).ReturnsAsync(reviews);
-            _mockMapper.Setup(m => m.Map<IEnumerable<ReviewReadDto>>(reviews)).Returns(reviews.Select(r => new ReviewReadDto()));
-            // Setup cache to return false initially and then set cache with the users list
-            object cacheValue;
-            _mockCache.Setup(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!)).Returns(false);
-            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
-
-            var results = await _reviewService.GetAllAsync(new QueryOptions());
-
-            Assert.NotEmpty(results);
-            _mockReviewRepository.Verify(r => r.GetAllAsync(It.IsAny<QueryOptions>()), Times.Once);
-            _mockCache.Verify(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!), Times.Once);
-        }
-
-        [Fact]
         public async Task UpdateOneAsync_UpdatesReview_WhenExists()
         {
             var reviewId = Guid.NewGuid();

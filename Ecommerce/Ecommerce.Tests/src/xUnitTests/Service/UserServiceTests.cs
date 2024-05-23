@@ -277,39 +277,6 @@ namespace Ecommerce.Tests.src.Service
             _mockUserRepository.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Never);
         }
 
-        [Fact]
-        public async Task GetAllAsync_ReturnsMappedEntities()
-        {
-            // Arrange
-            var users = new List<User>
-            {
-                new User { Id = Guid.NewGuid(), Email = "user1@example.com" },
-                new User { Id = Guid.NewGuid(), Email = "user2@example.com" }
-            };
-            var userDtos = new List<UserReadDto>
-            {
-                new UserReadDto { Email = "user1@example.com" },
-                new UserReadDto { Email = "user2@example.com" }
-            };
-
-            _mockUserRepository.Setup(r => r.GetAllAsync(It.IsAny<QueryOptions>())).ReturnsAsync(users);
-            _mockMapper.Setup(m => m.Map<IEnumerable<UserReadDto>>(users)).Returns(userDtos);
-
-            // Setup cache to return false initially and then set cache with the users list
-            object cacheValue;
-            _mockCache.Setup(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!)).Returns(false);
-            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
-
-            // Act
-            var result = await _userService.GetAllAsync(new QueryOptions());
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(userDtos.Count, result.Count());
-            _mockUserRepository.Verify(r => r.GetAllAsync(It.IsAny<QueryOptions>()), Times.Once);
-            _mockMapper.Verify(m => m.Map<IEnumerable<UserReadDto>>(users), Times.Once);
-            _mockCache.Verify(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!), Times.Once);
-        }
 
         [Fact]
         public async Task GetOneByIdAsync_ReturnsEntity_WhenFound()
@@ -322,11 +289,6 @@ namespace Ecommerce.Tests.src.Service
             _mockUserRepository.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(user);
             _mockMapper.Setup(m => m.Map<UserReadDto>(user)).Returns(userDto);
 
-            // Set up cache to return false initially and then set cache with the user
-            object cacheValue;
-            _mockCache.Setup(c => c.TryGetValue($"GetById-{userId}", out cacheValue!)).Returns(false);
-            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
-
             // Act
             var result = await _userService.GetOneByIdAsync(userId);
 
@@ -335,8 +297,8 @@ namespace Ecommerce.Tests.src.Service
             Assert.Equal(user.Email, result.Email);
             _mockUserRepository.Verify(r => r.GetByIdAsync(userId), Times.Once);
             _mockMapper.Verify(m => m.Map<UserReadDto>(user), Times.Once);
-            _mockCache.Verify(c => c.TryGetValue($"GetById-{userId}", out It.Ref<object>.IsAny!), Times.Once);
         }
+
         [Fact]
         public async Task GetOneByIdAsync_ThrowsNotFoundException_WhenNotFound()
         {

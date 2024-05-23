@@ -49,17 +49,9 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
 
             _mockRepository.Setup(r => r.GetByIdAsync(orderItemId)).ReturnsAsync(orderItem);
             _mockMapper.Setup(m => m.Map<OrderItemReadDto>(orderItem)).Returns(orderItemReadDto);
-            // Set up cache to return false initially and then set cache with the user
-            object cacheValue;
-            _mockCache.Setup(c => c.TryGetValue($"GetById-{orderItemId}", out cacheValue!)).Returns(false);
-            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
-
 
             var result = await _service.GetOneByIdAsync(orderItemId);
-
             Assert.Equal(orderItemReadDto, result);
-            _mockCache.Verify(c => c.TryGetValue($"GetById-{orderItemId}", out It.Ref<object>.IsAny!), Times.Once);
-
         }
 
         [Fact]

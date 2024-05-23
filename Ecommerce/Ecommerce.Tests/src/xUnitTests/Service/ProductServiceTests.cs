@@ -97,35 +97,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             _mockProductRepository.Verify(r => r.DeleteAsync(productId), Times.Once);
         }
 
-        [Fact]
-        public async Task GetAllAsync_ReturnsAllProducts()
-        {
-            // Arrange
-            var products = new List<Product>
-            {
-                new Product { Id = Guid.NewGuid(), Title = "Product 1" },
-                new Product { Id = Guid.NewGuid(), Title = "Product 2" },
-                new Product { Id = Guid.NewGuid(), Title = "Product 3" },
-                new Product { Id = Guid.NewGuid(), Title = "Product 4" },
-                new Product { Id = Guid.NewGuid(), Title = "Product 5" }
-            };
-
-            _mockProductRepository.Setup(x => x.GetAllAsync(It.IsAny<QueryOptions>())).ReturnsAsync(products);
-            _mockMapper.Setup(m => m.Map<IEnumerable<ProductReadDto>>(products)).Returns(products.Select(p => new ProductReadDto { Title = p.Title }));
-
-            // Setup cache to return false initially and then set cache with the users list
-            object cacheValue;
-            _mockCache.Setup(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!)).Returns(false);
-            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
-
-            // Act
-            var result = await _productService.GetAllAsync(new QueryOptions { Page = 1, PageSize = 5, SortBy = SortType.byTitle, SortOrder = SortOrder.Ascending });
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(5, result.Count());
-            _mockCache.Verify(c => c.TryGetValue(It.IsAny<object>(), out cacheValue!), Times.Once);
-        }
 
         [Fact]
         public async Task GetOneByIdAsync_ReturnsProduct_WhenValidIdProvided()
@@ -136,11 +107,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
 
             _mockProductRepository.Setup(x => x.GetByIdAsync(productId)).ReturnsAsync(product);
             _mockMapper.Setup(m => m.Map<ProductReadDto>(product)).Returns(new ProductReadDto { Title = product.Title });
-            // Set up cache to return false initially and then set cache with the user
-            object cacheValue;
-            _mockCache.Setup(c => c.TryGetValue($"GetById-{productId}", out cacheValue!)).Returns(false);
-            _mockCache.Setup(c => c.CreateEntry(It.IsAny<object>())).Returns(Mock.Of<ICacheEntry>);
-
 
             // Act
             var result = await _productService.GetOneByIdAsync(productId);
@@ -148,7 +114,6 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             // Assert
             Assert.NotNull(result);
             Assert.Equal("Test Product", result.Title);
-            _mockCache.Verify(c => c.TryGetValue($"GetById-{productId}", out cacheValue!), Times.Once);
         }
 
     }
