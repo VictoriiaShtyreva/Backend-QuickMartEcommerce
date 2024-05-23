@@ -12,7 +12,7 @@ The repository is an integral part of my capstone final project of the Full Stac
 - Frontend: TypeScript, React, Redux Toolkit, React Router, Material UI, Jest
 - Backend: ASP.NET Core, Entity Framework Core, PostgreSQL
 
-This repository contains only the backend code of the application. For the frontend implementation, please refer to the [frontend repository](https://github.com/VictoriiaShtyreva/QuickMart). You can explore the live deployment of my frontend e-commerce project by visiting [QuickMart](https://fs17-frontend-project.vercel.app/).
+This repository contains only the backend code of the application. For the frontend implementation, please refer to the [frontend repository](https://github.com/VictoriiaShtyreva/fs17-Frontend-project/tree/master). You can explore the live deployment of my frontend e-commerce project by visiting [QuickMart]().
 
 ## Table of Contents
 
@@ -45,6 +45,7 @@ This repository contains only the backend code of the application. For the front
 | **[xUnit](https://www.nuget.org/packages/xunit)**                                                                                      | Framework for unit testing, ensuring components function correctly in isolation.                                                       |
 | **[Moq](https://www.nuget.org/packages/Moq)**                                                                                          | Mocking library used with xUnit to simulate behavior of dependencies during testing.                                                   |
 | **[Microsoft.EntityFrameworkCore.Proxies](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Proxies/)**                     | The Microsoft.EntityFrameworkCore.Proxies package contains implementations of dynamic proxies for lazy-loading and/or change-tracking. |
+| **[CloudinaryDotNet](https://www.nuget.org/packages/CloudinaryDotNet)**                                                                | Manages image uploads, storage, and transformations in the cloud with Cloudinary API.                                                  |
 
 ## Getting Started
 
@@ -73,9 +74,18 @@ Before you begin, ensure you have the following installed:
    "Secrets": {
     "JwtKey": "YourSecretKey",
     "Issuer": "YourIssuer"
-   }
+   },
+    "CloudinarySettings": {
+    "CloudName": "YourName",
+    "ApiKey": "YourSecretKey",
+    "ApiSecret": "YourSecretApi"
+   },
    ```
    > Replace <YOUR_LOCAL_DB_CONNECTION_STRING> with your actual PostgreSQL connection strings.
+   > Replace YourCloudName, YourApiKey, and YourApiSecret with your Cloudinary account details.
+
+To get your Cloudinary settings, visit the [Cloudinary website](https://cloudinary.com/) and sign up or log in to your account. Navigate to the Dashboard to find your Cloud Name, API Key, and API Secret.
+
 3. **Create the database**: Run the following commands
    ```bash
     dotnet tool install --global dotnet-ef
@@ -110,6 +120,7 @@ Detailed database schema definitions including data types, constraints, and rela
 | `categories` | One to Many  | `products`       | Each category can encompass multiple products. A product must belong to a category.            |
 | `users`      | One to Many  | `orders`         | Each user can place multiple orders. An order is linked to the user who placed it.             |
 | `orders`     | One to Many  | `order_items`    | Each order can contain multiple items. Order items are linked back to their respective orders. |
+| `orders`     | One to One   | `address`        | Each order is associated with one address. An address is linked to one order.                  |
 
 ## Backend Server with ASP.NET Core
 
@@ -124,11 +135,56 @@ Detailed database schema definitions including data types, constraints, and rela
 - **Ecommerce.Controller**: This layer is responsible for handling incoming HTTP requests and returning responses. It interacts with the Service layer to fetch and send data back to the client.
 - **Ecommerce.WebAPI**: This houses the controllers and is the entry point for client interactions through HTTP requests. It includes middleware for error handling.
 
+### Connections and Data Flow
+
+1. **Controllers** in the WebAPI layer receive HTTP requests.
+2. **Controllers** call the **Service** layer to perform the necessary business logic.
+3. The **Service** layer uses the **Repositories** from the Data Access layer to fetch or persist data.
+4. **Repositories** interact with the database and return the data to the Service layer.
+5. The **Service** layer processes the data according to the business rules defined in the Core layer.
+6. The processed data is returned to the **Controller**, which sends the appropriate HTTP response back to the client.
+
+### Database Connection
+
+The project follows the Repository pattern for database operations. Each repository implements an interface defined in the Core layer, ensuring that the data access code is abstracted and can be easily swapped or mocked for testing purposes.
+
+- **DbContext**: Configured in the WebAPI layer using dependency injection, providing a session with the database.
+- **Repositories**: Use the DbContext to perform CRUD operations on the entities.
+
+### Example
+
+Here is an example of how an Order is processed:
+
+1. A client sends a `POST` request to create a new order.
+2. The **OrderController** receives the request and calls the `CreateOrder` use case in the **OrderService**.
+3. The **OrderService** calls the `AddOrder` method in the **OrderRepository**.
+4. The **OrderRepository** uses the **DbContext** to save the new order to the database.
+5. The **OrderService** returns the result to the **OrderController**.
+6. The **OrderController** sends a response back to the client indicating the order was successfully created.
+
+### Summary
+
+By following the principles of Clean Architecture, this project ensures that the business logic is kept separate from the infrastructure and UI, promoting better organization, testability, and scalability. Each layer has a specific responsibility and communicates with adjacent layers through well-defined interfaces, ensuring a clean separation of concerns.
+
 ## API Endpoints
 
-All the endpoints of the API are documented and can be tested directly on the generated Swagger page. From there you can view each endpoint URL, their HTTP methods, request body structures and authorization requirements. Access the Swagger page from this link.
+All the endpoints of the API are documented and can be tested directly on the generated Swagger page. From there you can view each endpoint URL, their HTTP methods, request body structures and authorization requirements. Access the Swagger page from this [link]().
+
+![Swagger](/readmeImg/Swagger.png)
 
 ## Key Features
+
+| Feature                                   | Description                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **User Authentication and Authorization** | Secure user registration, login, and role-based access control using JWT tokens.                       |
+| **Product Management**                    | Comprehensive product management including creation, update, deletion, and viewing of product details. |
+| **Order Processing**                      | Full order lifecycle management from order creation, payment processing, to order fulfillment.         |
+| **Payment Integration**                   | Integration with payment gateways to handle secure and seamless transactions.                          |
+| **Image Upload and Management**           | Utilizes Cloudinary for uploading, storing, and managing product images.                               |
+| **Search and Filtering**                  | Advanced search and filtering capabilities to help users find products quickly.                        |
+| **Reviews and Ratings**                   | Allows users to leave reviews and ratings for products, enhancing customer feedback and engagement.    |
+| **Admin Dashboard**                       | Admin interface for managing users, orders, products, and other administrative tasks.                  |
+| **Unit Testing**                          | Comprehensive test coverage using xUnit and Moq to ensure code quality and reliability.                |
 
 ## Unit Testing
 
@@ -138,109 +194,166 @@ Unit tests in this project are crucial for ensuring code quality and functionali
 
 ![UnitTesting](/readmeImg/UnitTests.png)
 
+### Running Unit Tests
+
+To execute the unit tests, you can use the .NET CLI. Follow these steps to run the tests from the command line:
+
+1. **Navigate to the project directory**: Open your terminal or command prompt and navigate to the root directory of project.
+
+   ```bash
+   cd Ecommerce
+   ```
+
+2. **Run the tests**: Execute the following command to run all the tests in the solution:
+
+   ```bash
+   dotnet test
+   ```
+
+   > This command will run all the tests, providing you with a summary of the test results, including passed, failed, and skipped tests.
+
 ## Repository Structure
 
 My project is organized as follows to maintain a clean and navigable codebase:
 
 ```plaintext
-|-- /Ecommerce
-|   |-- /Ecommerce.Core
-|   |   |-- /Common
-|   |   |   |-- QueryOptions.cs               // Base class for query options, providing common properties like Sort.
-|   |   |   |-- UserCredential.cs             // Represents credentials for a user, used in authentication processes.
-|   |   |-- /Entities
-|   |   |   |-- BaseEntity.cs                 // Base class for all entities, containing common properties like Id.
-|   |   |   |-- Category.cs                   // Represents a product category with properties like Name and Description.
-|   |   |   |-- Product.cs                    // Defines a product with properties such as Name, Price, and CategoryId.
-|   |   |   |-- ProductImage.cs               // Associated images for products, storing paths or image data.
-|   |   |   |-- Review.cs                     // Customer reviews for products, includes Rating and Comment.
-|   |   |   |-- TimeStamp.cs                  // Adds timestamps to entities, handled by TimeStampInterceptor for automatic updates.
-|   |   |   |-- User.cs                       // User profile information, including credentials and roles.
-|   |   |   |-- OrderAggregate/               // Details an order, encapsulating order items and transaction data.
-|   |   |   |   |-- Order.cs
-|   |   |   |   |-- OrderItem.cs
-|   |   |-- /Interfaces
-|   |   |   |-- IBaseRepository.cs            // Generic interface for CRUD operations applicable to all entities.
-|   |   |   |-- ICategoryRepository.cs        // Custom repository actions for categories, like bulk update or specialized queries.
-|   |   |   |-- IOrderRepository.cs           // Additional methods for managing orders, including status updates and history.
-|   |   |   |-- IProductImageRepository.cs    // Handles operations specific to product image storage and retrieval.
-|   |   |   |-- IProductRepository.cs         // Product-specific repository methods, such as searching by category.
-|   |   |   |-- IReviewRepository.cs          // Methods for managing product reviews, including approval processes.
-|   |   |   |-- IUserRepository.cs            // User-related data access functionalities, including search by role.
-|   |   |-- /ValueObjects
-|   |   |   |-- ProductSnapshot.cs            // A snapshot of product data at the time of transaction, used in order details.
-|   |   |   |-- UserRole.cs                   // Defines roles within the system to manage access control levels.
-|   |   |   |-- OrderStatus.cs                // Defines status of orders within the system to manage access control levels.
-|   |   |-- /Extensions
-|   |       |-- ErrorDetails.cs               // Format for API error responses, includes status code and message.
-|   |       |-- AppException.cs               // Custom exception type for application-specific errors, used for unified handling.
-|   |
-|   |-- /Ecommerce.Service
-|   |   |-- /DTO
-|   |   |   |-- CategoryDto.cs                // Simplified category data for transfer, primarily used in listing endpoints.
-|   |   |   |-- OrderDto.cs                   // Summary of an order for client applications, includes OrderItems and total cost.
-|   |   |   |-- OrderItemDto.cs               // Details of an individual order item within an order.
-|   |   |   |-- ProductDto.cs                 // Product data formatted for client delivery, includes descriptions and pricing.
-|   |   |   |-- ProductImageDto.cs            // Data transfer format for images, may include a URL or binary data.
-|   |   |   |-- ReviewDto.cs                  // Format for delivering review data to clients, includes user context and content.
-|   |   |   |-- UserDto.cs                    // User profile information suitable for client-side use, includes user roles.
-|   |-- /Services
-|   |   |   |-- /Services
-|   |   |   |-- AuthService.cs                // Manages authentication processes, including token generation and validation.
-|   |   |   |-- BaseService.cs                // Base service providing common functionalities to all services, such as logging.
-|   |   |   |-- CategoryService.cs            // Operations related to category management, from creation to modification.
-|   |   |   |-- OrderItemService.cs           // Detailed logic for handling order items during the purchase process.
-|   |   |   |-- OrderService.cs               // Coordinates all aspects of order processing, from placement to delivery.
-|   |   |   |-- ProductImageService.cs        // Handles the storage and retrieval of product images.
-|   |   |   |-- ProductService.cs             // Core service for product management, including inventory and updates.
-|   |   |   |-- ReviewService.cs              // Manages the lifecycle of product reviews, including moderation.
-|   |   |   |-- UserService.cs                // User profile and credential management, including registration and updates.
-|   |   |   |-- TokenService.cs               // Generates and validates security tokens for user authentication.
-|   |   |-- /Shared
-|   |       |-- AutoMapperProfile.cs          // Configurations for AutoMapper to handle entity to DTO mappings efficiently.
-|   |       |-- PasswordService.cs            // Provides password hashing and verification services.
-|   |
-|   |-- /Ecommerce.Controller
-|   |   |-- /Controller
-|   |   |   |-- AuthController.cs             // Handles authentication requests, like login and token refresh.
-|   |   |   |-- CategoryController.cs         // Provides API access to category data, including CRUD operations.
-|   |   |   |-- OrderController.cs            // Manages order-related endpoints, from creation to status updates.
-|   |   |   |-- ProductController.cs          // Controls product data exposure through the API, including search and details.
-|   |   |   |-- ProductImageController.cs     // Endpoints for uploading and retrieving product images.
-|   |   |   |-- ReviewController.cs           // API operations for managing reviews, including posting and editing.
-|   |   |   |-- UserController.cs             // Handles user profile requests and user-specific data interactions.
-|   |   |
-|   |-- /Ecommerce.WebAPI
-|   |   |-- /Repo
-|   |   |   |-- CategoryRepository.cs         // Accesses and manipulates category data in the database.
-|   |   |   |-- ProductImageRepo.cs           // Handles the persistence of product images.
-|   |   |   |-- ProductRepo.cs                // Facilitates data access for product management.
-|   |   |   |-- ReviewRepository.cs           // Manages review data interactions.
-|   |   |   |-- UserRepo.cs                   // Repository for user data access and manipulation.
-|   |   |-- /Data
-|   |   |   |-- AppDbContext.cs               // Entity Framework context, configures model relationships and database mappings.
-|   |   |   |-- TimeStampInterceptor.cs       // EF Core interceptor to automatically update timestamp fields on save.
-|   |   |-- /Middleware
-|   |       |-- ExceptionMiddleware.cs        // Centralizes exception handling for the API, standardizing error responses.
-|   |
-|   |-- /Ecommerce.Test
-|   |   |-- /UnitTests
-|   |   |   |-- CategoryTests.cs              // Tests for category functionalities.
-|   |   |   |-- OrderTests.cs                 // Tests for order functionalities.
-|   |   |   |-- ProductImageTests.cs          // Tests for product image functionalities.
-|   |   |   |-- ProductTests.cs               // Tests for product functionalities.
-|   |   |   |-- ReviewTests.cs                // Tests for review functionalities.
-|   |   |   |-- UserTests.cs                  // Tests for user functionalities.
-|   |
-|   |   |-- /Service
-|   |   |   |-- CategoryServiceTests.cs       // Tests for category service operations.
-|   |   |   |-- OrderItemServiceTests.cs      // Tests for order item service operations.
-|   |   |   |-- OrderServiceTests.cs          // Tests for order service operations.
-|   |   |   |-- ProductImageServiceTests.cs   // Tests for product image service operations.
-|   |   |   |-- ProductServiceTests.cs        // Tests for product service operations.
-|   |   |   |-- ReviewServiceTests.cs         // Tests for review service operations.
-|   |   |   |-- UserServiceTests.cs           // Tests for user service operations.
-
+Ecommerce
+   |-- Ecommerce.Controller
+   |   |-- Ecommerce.Controller.csproj
+   |   |-- src
+   |   |   |-- Controllers
+   |   |   |   |-- AuthController.cs
+   |   |   |   |-- CategoryController.cs
+   |   |   |   |-- OrderController.cs
+   |   |   |   |-- ProductController.cs
+   |   |   |   |-- ProductImagesController.cs
+   |   |   |   |-- ReviewController.cs
+   |   |   |   |-- UserController.cs
+   |-- Ecommerce.Core
+   |   |-- Ecommerce.Core.csproj
+   |   |-- src
+   |   |   |-- Common
+   |   |   |   |-- AppException.cs
+   |   |   |   |-- CloudinarySettings.cs
+   |   |   |   |-- PaginatedResult.cs
+   |   |   |   |-- PasswordChange.cs
+   |   |   |   |-- QueryOptions.cs
+   |   |   |   |-- UserCredential.cs
+   |   |   |-- Entities
+   |   |   |   |-- BaseEntity.cs
+   |   |   |   |-- Category.cs
+   |   |   |   |-- OrderAggregate
+   |   |   |   |   |-- Address.cs
+   |   |   |   |   |-- Order.cs
+   |   |   |   |   |-- OrderItem.cs
+   |   |   |   |-- Product.cs
+   |   |   |   |-- ProductImage.cs
+   |   |   |   |-- Review.cs
+   |   |   |   |-- TimeStamp.cs
+   |   |   |   |-- User.cs
+   |   |   |-- Interfaces
+   |   |   |   |-- IBaseRepository.cs
+   |   |   |   |-- ICategoryRepository.cs
+   |   |   |   |-- IOrderRepository.cs
+   |   |   |   |-- IProductImageRepository.cs
+   |   |   |   |-- IProductRepository.cs
+   |   |   |   |-- IReviewRepository.cs
+   |   |   |   |-- IUserRepository.cs
+   |   |   |-- ValueObjects
+   |   |   |   |-- OrderStatus.cs
+   |   |   |   |-- ProductSnapshot.cs
+   |   |   |   |-- SortOrder.cs
+   |   |   |   |-- SortType.cs
+   |   |   |   |-- UserRole.cs
+   |-- Ecommerce.Service
+   |   |-- Ecommerce.Service.csproj
+   |   |-- src
+   |   |   |-- DTOs
+   |   |   |   |-- AddressDto.cs
+   |   |   |   |-- CategoryDto.cs
+   |   |   |   |-- OrderDto.cs
+   |   |   |   |-- OrderItemDto.cs
+   |   |   |   |-- ProductDto.cs
+   |   |   |   |-- ProductImageDto.cs
+   |   |   |   |-- ProductSnapshotDto.cs
+   |   |   |   |-- ReviewDto.cs
+   |   |   |   |-- UserDto.cs
+   |   |   |-- Interfaces
+   |   |   |   |-- IAuthService.cs
+   |   |   |   |-- IBaseService.cs
+   |   |   |   |-- ICategoryService.cs
+   |   |   |   |-- ICloudinaryImageService.cs
+   |   |   |   |-- IOrderItemService.cs
+   |   |   |   |-- IOrderService.cs
+   |   |   |   |-- IPasswordService.cs
+   |   |   |   |-- IProductImageService.cs
+   |   |   |   |-- IProductService.cs
+   |   |   |   |-- IReviewService.cs
+   |   |   |   |-- ITokenService.cs
+   |   |   |   |-- IUserService.cs
+   |   |   |-- Services
+   |   |   |   |-- AuthService.cs
+   |   |   |   |-- BaseService.cs
+   |   |   |   |-- CategoryService.cs
+   |   |   |   |-- OrderItemService.cs
+   |   |   |   |-- OrderService.cs
+   |   |   |   |-- ProductImageService.cs
+   |   |   |   |-- ProductService.cs
+   |   |   |   |-- ReviewService.cs
+   |   |   |   |-- UserService.cs
+   |   |   |-- Shared
+   |   |   |   |-- AutoMapperProfile.cs
+   |-- Ecommerce.Tests
+   |   |-- Ecommerce.Tests.csproj
+   |   |-- src
+   |   |   |-- xUnitTests
+   |   |   |   |-- Core
+   |   |   |   |   |-- OrderTests.cs
+   |   |   |   |   |-- ProductTests.cs
+   |   |   |   |-- Service
+   |   |   |   |   |-- AuthServiceTests.cs
+   |   |   |   |   |-- CategoryServiceTests.cs
+   |   |   |   |   |-- OrderItemServiceTests.cs
+   |   |   |   |   |-- OrderServiceTests.cs
+   |   |   |   |   |-- ProductImageServiceTests.cs
+   |   |   |   |   |-- ProductServiceTests.cs
+   |   |   |   |   |-- ReviewServiceTests.cs
+   |   |   |   |   |-- UserServiceTests.cs
+   |   |   |   |-- WebAPI
+   |   |   |   |   |-- PasswordServiceTests.cs
+   |-- Ecommerce.WebAPI
+   |   |-- Ecommerce.WebAPI.csproj
+   |   |-- Ecommerce.WebAPI.http
+   |   |-- Program.cs
+   |   |-- Properties
+   |   |   |-- launchSettings.json
+   |   |-- src
+   |   |   |-- AuthorizationPolicy
+   |   |   |   |-- AdminOrOwnerAccountRequirement.cs
+   |   |   |-- Data
+   |   |   |   |-- AppDbContext.cs
+   |   |   |   |-- SeedingData.cs
+   |   |   |   |-- TimeStampInteceptor.cs
+   |   |   |-- ExternalService
+   |   |   |   |-- CloudinaryImageService.cs
+   |   |   |   |-- PasswordService.cs
+   |   |   |   |-- TokenService.cs
+   |   |   |-- Middleware
+   |   |   |   |-- ExceptionMiddleware.cs
+   |   |   |-- Repositories
+   |   |   |   |-- AddressRepository.cs
+   |   |   |   |-- CategoryRepository.cs
+   |   |   |   |-- OrderItemRepository.cs
+   |   |   |   |-- OrderRepository.cs
+   |   |   |   |-- ProductImageRepository.cs
+   |   |   |   |-- ProductRepository.cs
+   |   |   |   |-- ReviewRepository.cs
+   |   |   |   |-- UserRepository.cs
+   |   |   |-- ValueConversion
+   |   |   |   |-- JsonValueConverter.cs
+   |-- Ecommerce.sln
+   |-- Ecommerce.sln.DotSettings.user
+README.md
 ```
 
 ## Acknowledgements

@@ -27,7 +27,7 @@ namespace Ecommerce.Service.src.Shared
 
             // Product mappings
             CreateMap<Product, ProductReadDto>()
-          .ForMember(dest => dest.Reviews, opt => opt.MapFrom(src => src.Reviews));
+                .ForMember(dest => dest.Reviews, opt => opt.MapFrom(src => src.Reviews));
             CreateMap<ProductCreateDto, Product>();
             // Only map non-null fields to allow partial updates
             CreateMap<ProductUpdateDto, Product>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
