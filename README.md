@@ -177,6 +177,7 @@ All the endpoints of the API are documented and can be tested directly on the ge
 | Feature                                   | Description                                                                                            |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | **User Authentication and Authorization** | Secure user registration, login, and role-based access control using JWT tokens.                       |
+| **Password Hashing**                      | Securely hashes user passwords to protect sensitive information.                                       |
 | **Product Management**                    | Comprehensive product management including creation, update, deletion, and viewing of product details. |
 | **Order Processing**                      | Full order lifecycle management from order creation, payment processing, to order fulfillment.         |
 | **Payment Integration**                   | Integration with payment gateways to handle secure and seamless transactions.                          |
