@@ -63,8 +63,6 @@ namespace Ecommerce.Service.src.Services
                 existingUser.Avatar = uploadResult.SecureUrl.ToString();
             }
             var updatedUser = await _userRepository.UpdateAsync(existingUser);
-            _cache.Remove($"GetById-{id}");
-            _cache.Remove($"GetAll-{typeof(User).Name}");
             return _mapper.Map<UserReadDto>(updatedUser);
         }
 
