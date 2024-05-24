@@ -28,7 +28,19 @@ namespace Ecommerce.WebAPI.src.Repositories
         {
             var user = await _users.FindAsync(id);
             if (user == null) return false;
+
+            // Find and delete related reviews
+            var relatedReviews = _context.Reviews.Where(r => r.UserId == id);
+            _context.Reviews.RemoveRange(relatedReviews);
+
+            // Find and delete related orders
+            var relatedOrders = _context.Orders.Where(o => o.UserId == id);
+            _context.Orders.RemoveRange(relatedOrders);
+
+            // Remove the user
             _users.Remove(user);
+
+            // Save changes
             await _context.SaveChangesAsync();
             return true;
         }

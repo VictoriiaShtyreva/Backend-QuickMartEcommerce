@@ -128,7 +128,7 @@ namespace Ecommerce.WebAPI.src.Data
                 entity.ToTable("reviews");
                 entity.HasKey(r => r.Id).HasName("reviews_pkey");
                 entity.HasOne(r => r.User).WithMany(u => u.Reviews).HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.SetNull);
-                entity.HasOne(r => r.Product).WithMany(p => p.Reviews).HasForeignKey(r => r.ProductId).OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(r => r.Product).WithMany(p => p.Reviews).HasForeignKey(r => r.ProductId).OnDelete(DeleteBehavior.Cascade);
                 entity.Property(oi => oi.CreatedAt).HasDefaultValueSql("now()");
                 entity.Property(oi => oi.UpdatedAt).HasDefaultValueSql("now()");
             });

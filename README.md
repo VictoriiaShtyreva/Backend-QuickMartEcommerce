@@ -168,7 +168,7 @@ By following the principles of Clean Architecture, this project ensures that the
 
 ## API Endpoints
 
-All the endpoints of the API are documented and can be tested directly on the generated Swagger page. From there you can view each endpoint URL, their HTTP methods, request body structures and authorization requirements. Access the Swagger page from this [link]().
+All the endpoints of the API are documented and can be tested directly on the generated Swagger page. From there you can view each endpoint URL, their HTTP methods, request body structures and authorization requirements. Access the Swagger page from this [link](https://quick-mart-ecommerce.azurewebsites.net/swagger/index.html).
 
 ![Swagger](/readmeImg/Swagger.png)
 

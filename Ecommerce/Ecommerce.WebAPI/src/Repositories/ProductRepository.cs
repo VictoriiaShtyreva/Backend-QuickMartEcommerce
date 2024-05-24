@@ -28,6 +28,10 @@ namespace Ecommerce.WebAPI.src.Repositories
         {
             var product = await _products.FindAsync(id);
             if (product == null) return false;
+            // Find and delete related reviews
+            var relatedReviews = _context.Reviews.Where(r => r.ProductId == id);
+            _context.Reviews.RemoveRange(relatedReviews);
+            // Remove the product
             _products.Remove(product);
             await _context.SaveChangesAsync();
             return true;
