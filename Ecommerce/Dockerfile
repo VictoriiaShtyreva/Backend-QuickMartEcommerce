@@ -16,11 +16,12 @@ RUN dotnet restore
 # Copy the rest of the application and build it
 COPY . .
 WORKDIR /Ecommerce/Ecommerce.WebAPI
-RUN dotnet publish -c Release -o ./publish
+RUN dotnet publish -c Release -o /publish
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /Ecommerce/Ecommerce.WebAPI
-COPY --from=build /publish .
+COPY --from=build-env /publish .
+EXPOSE 8080
 ENV ASPNETCORE_ENVIRONMENT=Development
 ENTRYPOINT ["dotnet", "Ecommerce.WebAPI.dll"]
