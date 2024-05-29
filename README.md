@@ -3,9 +3,14 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-v.4-green)
 ![React](https://img.shields.io/badge/React-v.18-blue)
 ![Redux toolkit](https://img.shields.io/badge/Redux-v.1.9-brown)
-![.NET Core](https://img.shields.io/badge/.NET%20Core-v.8-purple)
 ![EF Core](https://img.shields.io/badge/EF%20Core-v.8-cyan)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v.16-drakblue)
+![.NET Core](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=Cloudinary&logoColor=white)
+![Stripe](https://img.shields.io/badge/Stripe-626CD9?style=for-the-badge&logo=Stripe&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white)
+![Nuget](https://img.shields.io/badge/NuGet-004880?style=for-the-badge&logo=nuget&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=Swagger&logoColor=white)
 
 The repository is an integral part of my capstone final project of the Full Stack Program at [Integrify](https://www.integrify.io/). It is the back-end component of an e-commerce application that showcases the capabilities which online retailers to operate. The data is retrieved, and can be created, deleted etc. through an API, an API which is running on ASP. NET Core. The application is passed with user authentication selected roles for user. Registering as a customer gives you the liberty to create an order, manage your history, and review a product. The administrator is able to do CRUD operations on the products, user- and all the orders from his own dashboard too.
 
@@ -46,6 +51,7 @@ This repository contains only the backend code of the application. For the front
 | **[Moq](https://www.nuget.org/packages/Moq)**                                                                                          | Mocking library used with xUnit to simulate behavior of dependencies during testing.                                                   |
 | **[Microsoft.EntityFrameworkCore.Proxies](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Proxies/)**                     | The Microsoft.EntityFrameworkCore.Proxies package contains implementations of dynamic proxies for lazy-loading and/or change-tracking. |
 | **[CloudinaryDotNet](https://www.nuget.org/packages/CloudinaryDotNet)**                                                                | Manages image uploads, storage, and transformations in the cloud with Cloudinary API.                                                  |
+| **[Stripe.net](https://www.nuget.org/packages/Stripe.net/)**                                                                           | The official Stripe .NET library, supporting .NET Standard 2.0+, .NET Core 2.0+, and .NET Framework 4.6.1+.                            |
 
 ## Getting Started
 
@@ -81,9 +87,15 @@ Before you begin, ensure you have the following installed:
     "ApiKey": "YourSecretKey",
     "ApiSecret": "YourSecretApi"
    },
+   "Stripe": {
+    "SecretKey": "YourSecretKey",
+    "PublishableKey": "YourPublishKey",
+    "WhSecret": "YourWebhookSecret"
+   },
    ```
    > Replace <YOUR_LOCAL_DB_CONNECTION_STRING> and <YOUR_REMOTE_DB> with your actual PostgreSQL connection strings.
    > Replace YourCloudName, YourApiKey, and YourApiSecret with your Cloudinary account details.
+   > Replace YourSecretKey, YourPublishKey, YourWebhookSecret with your Stripe account details.
 
 To get your Cloudinary settings, visit the [Cloudinary website](https://cloudinary.com/) and sign up or log in to your account. Navigate to the Dashboard to find your Cloud Name, API Key, and API Secret.
 
@@ -173,7 +185,7 @@ By following the principles of Clean Architecture, this project ensures that the
 
 ## API Endpoints
 
-All the endpoints of the API are documented and can be tested directly on the generated Swagger page. From there you can view each endpoint URL, their HTTP methods, request body structures and authorization requirements. Access the Swagger page from this [link](https://quick-mart-ecommerce.azurewebsites.net/swagger/index.html).
+All the endpoints of the API are documented and can be tested directly on the generated Swagger page. From there you can view each endpoint URL, their HTTP methods, request body structures and authorization requirements. Access the Swagger page from this [link](https://quick-mart-ecommerce.azurewebsites.net/index.html).
 
 ![Swagger](/readmeImg/Swagger.png)
 
