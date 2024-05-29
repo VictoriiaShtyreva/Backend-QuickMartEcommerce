@@ -9,7 +9,8 @@ namespace Ecommerce.Service.src.DTOs
         public OrderStatus Status { get; set; }
         public decimal TotalPrice { get; set; }
         public List<OrderItemReadDto>? OrderItems { get; set; }
-        public AddressDto? ShippingAddress { get; set; }
+        public AddressReadDto? ShippingAddress { get; set; }
+        public string? PaymentIntentId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }
@@ -18,14 +19,14 @@ namespace Ecommerce.Service.src.DTOs
     {
         public Guid UserId { get; set; }
         public List<OrderItemCreateDto> OrderItems { get; set; } = new List<OrderItemCreateDto>();
-        public AddressDto? ShippingAddress { get; set; } = new AddressDto();
+        public AddressCreateDto? ShippingAddress { get; set; } = new AddressCreateDto();
     }
 
     public class OrderUpdateDto
     {
         public OrderStatus? Status { get; set; }
         public List<OrderItemUpdateDto>? OrderItems { get; set; }
-        public AddressDto? ShippingAddress { get; set; }
+        public AddressUpdateDto? ShippingAddress { get; set; }
     }
 
     public class OrderStatusUpdateDto

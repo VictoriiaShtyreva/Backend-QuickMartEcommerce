@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.2" />
+    <PackageReference Include="Stripe.net" Version="44.9.0" />
   </ItemGroup>
 
   <PropertyGroup>

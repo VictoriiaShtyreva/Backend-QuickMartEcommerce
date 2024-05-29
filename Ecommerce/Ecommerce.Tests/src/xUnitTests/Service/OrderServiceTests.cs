@@ -5,6 +5,7 @@ using Ecommerce.Core.src.Entities.OrderAggregate;
 using Ecommerce.Core.src.Interfaces;
 using Ecommerce.Core.src.ValueObjects;
 using Ecommerce.Service.src.DTOs;
+using Ecommerce.Service.src.Interfaces;
 using Ecommerce.Service.src.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Moq;
@@ -19,11 +20,12 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         private readonly Mock<IProductImageRepository> _mockProductImageRepository = new Mock<IProductImageRepository>();
         private readonly Mock<IMapper> _mockMapper = new Mock<IMapper>();
         private readonly Mock<IMemoryCache> _mockCache = new Mock<IMemoryCache>();
+        private readonly Mock<IStripeService> _mockStripeService = new Mock<IStripeService>();
         private readonly OrderService _service;
 
         public OrderServiceTests()
         {
-            _service = new OrderService(_mockOrderRepository.Object, _mockAddressRepository.Object, _mockProductRepository.Object, _mockProductImageRepository.Object, _mockMapper.Object, _mockCache.Object);
+            _service = new OrderService(_mockOrderRepository.Object, _mockAddressRepository.Object, _mockProductRepository.Object, _mockProductImageRepository.Object, _mockMapper.Object, _mockCache.Object, _mockStripeService.Object);
         }
 
         [Theory]
@@ -92,15 +94,16 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
         [Fact]
         public async Task CreateOrderAsync_CreatesOrderSuccessfully()
         {
+            // Arrange
             var orderCreateDto = new OrderCreateDto
             {
                 UserId = Guid.NewGuid(),
                 ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
                 OrderItems = new List<OrderItemCreateDto>
-                {
-                    new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 1 },
-                    new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 2 }
-                }
+            {
+                new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 1 },
+                new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 2 }
+            }
             };
 
             var products = orderCreateDto.OrderItems.Select(item => new Product
@@ -118,10 +121,13 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             foreach (var product in products)
             {
                 _mockProductRepository.Setup(p => p.GetByIdAsync(product.Id)).ReturnsAsync(product);
+                _mockProductRepository.Setup(p => p.UpdateAsync(It.IsAny<Product>())).ReturnsAsync(product);
+                _mockProductImageRepository.Setup(p => p.GetByIdAsync(product.Id)).ReturnsAsync(product.Images!.First());
             }
 
             _mockAddressRepository.Setup(x => x.CreateAsync(It.IsAny<Address>())).ReturnsAsync(address);
             _mockOrderRepository.Setup(x => x.CreateAsync(It.IsAny<Order>())).ReturnsAsync(new Order { UserId = orderCreateDto.UserId });
+            _mockStripeService.Setup(x => x.CreatePaymentIntent(It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync("test_payment_intent_id");
 
             _mockMapper.Setup(m => m.Map<Address>(It.IsAny<AddressDto>())).Returns(address);
             _mockMapper.Setup(m => m.Map<OrderReadDto>(It.IsAny<Order>())).Returns(new OrderReadDto
@@ -141,12 +147,15 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
                 }).ToList()
             });
 
+            // Act
             var result = await _service.CreateOrderAsync(orderCreateDto);
 
+            // Assert
             Assert.NotNull(result);
             Assert.Equal(orderCreateDto.UserId, result.UserId);
             Assert.Equal(orderCreateDto.ShippingAddress.AddressLine, result.ShippingAddress!.AddressLine);
             Assert.Equal(orderCreateDto.OrderItems.Count, result.OrderItems!.Count);
+            _mockStripeService.Verify(x => x.CreatePaymentIntent(It.IsAny<decimal>(), It.IsAny<string>()), Times.Once);
         }
 
         [Fact]

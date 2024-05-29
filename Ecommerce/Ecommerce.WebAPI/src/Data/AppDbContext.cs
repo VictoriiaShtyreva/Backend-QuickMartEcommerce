@@ -63,6 +63,7 @@ namespace Ecommerce.WebAPI.src.Data
             {
                 entity.ToTable("orders");
                 entity.HasKey(o => o.Id).HasName("orders_pkey");
+                entity.Property(o => o.PaymentIntentId).HasMaxLength(255);
                 entity.Property(o => o.TotalPrice).HasPrecision(18, 2);
                 entity.Property(o => o.CreatedAt).HasDefaultValueSql("now()");
                 entity.Property(o => o.UpdatedAt).HasDefaultValueSql("now()");

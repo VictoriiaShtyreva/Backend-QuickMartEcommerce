@@ -62,7 +62,7 @@ builder.Services.AddSwaggerGen(
 );
 
 // Add DB context
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("Remote"));
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("Localhost"));
 dataSourceBuilder.MapEnum<UserRole>();
 dataSourceBuilder.MapEnum<OrderStatus>();
 var dataSource = dataSourceBuilder.Build();
@@ -118,6 +118,8 @@ builder.Services.AddScoped<IOrderItemService, OrderItemService>();
 builder.Services.AddScoped<IBaseRepository<Address, QueryOptions>, AddressRepository>();
 //Cloudinary
 builder.Services.AddScoped<ICloudinaryImageService, CloudinaryImageService>();
+//Stripe
+builder.Services.AddScoped<IStripeService, StripeService>();
 
 // Configure Cloudinary
 var cloudinaryAccount = new Account(

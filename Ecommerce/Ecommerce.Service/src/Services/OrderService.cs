@@ -15,13 +15,15 @@ namespace Ecommerce.Service.src.Services
         private readonly IBaseRepository<Address, QueryOptions> _addressRepository;
         private readonly IProductRepository _productRepository;
         private readonly IProductImageRepository _productImageRepository;
-        public OrderService(IOrderRepository orderRepository, IBaseRepository<Address, QueryOptions> addressRepository, IProductRepository productRepository, IProductImageRepository productImageRepository, IMapper mapper, IMemoryCache cache)
+        private readonly IStripeService _stripeService;
+        public OrderService(IOrderRepository orderRepository, IBaseRepository<Address, QueryOptions> addressRepository, IProductRepository productRepository, IProductImageRepository productImageRepository, IMapper mapper, IMemoryCache cache, IStripeService stripeService)
             : base(orderRepository, mapper, cache)
         {
             _orderRepository = orderRepository;
             _addressRepository = addressRepository;
             _productRepository = productRepository;
             _productImageRepository = productImageRepository;
+            _stripeService = stripeService;
         }
         public async Task<bool> CancelOrderAsync(Guid orderId)
         {
@@ -57,6 +59,10 @@ namespace Ecommerce.Service.src.Services
                 var productSnapshot = await product.CreateSnapshotAsync(_productImageRepository);
                 order.AddOrderItem(productSnapshot, item.Quantity);
             }
+            // Create payment intent
+            var currency = "usd";
+            var paymentIntentId = await _stripeService.CreatePaymentIntent(order.TotalPrice, currency);
+            order.PaymentIntentId = paymentIntentId;
             var createdOrder = await _orderRepository.CreateAsync(order);
             return _mapper.Map<OrderReadDto>(createdOrder);
         }
@@ -114,6 +120,24 @@ namespace Ecommerce.Service.src.Services
                 order.ShippingAddress = savedAddress;
             }
 
+            await _orderRepository.UpdateAsync(order);
+            return true;
+        }
+
+        public async Task<bool> MarkOrderAsPaid(string paymentIntentId)
+        {
+            var order = await _orderRepository.GetByPaymentIntentIdAsync(paymentIntentId);
+            if (order == null) return false;
+            order.Status = OrderStatus.Pending;
+            await _orderRepository.UpdateAsync(order);
+            return true;
+        }
+
+        public async Task<bool> MarkOrderAsFailed(string paymentIntentId)
+        {
+            var order = await _orderRepository.GetByPaymentIntentIdAsync(paymentIntentId);
+            if (order == null) return false;
+            order.Status = OrderStatus.Cancelled;
             await _orderRepository.UpdateAsync(order);
             return true;
         }

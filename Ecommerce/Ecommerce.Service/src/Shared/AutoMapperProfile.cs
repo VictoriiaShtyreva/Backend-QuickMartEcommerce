@@ -50,8 +50,11 @@ namespace Ecommerce.Service.src.Shared
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
 
             // Address mappings
-            CreateMap<Address, AddressDto>();
-            CreateMap<AddressDto, Address>();
+            CreateMap<Address, AddressReadDto>();
+            CreateMap<AddressCreateDto, Address>();
+            // Only map non-null fields to allow partial updates
+            CreateMap<AddressUpdateDto, Address>().ForAllMembers(opts => opts.Condition((src, dest, srcMember) => !IsValueTypeDefault(srcMember)));
+
 
             // OrderItem mappings
             CreateMap<OrderItem, OrderItemReadDto>();

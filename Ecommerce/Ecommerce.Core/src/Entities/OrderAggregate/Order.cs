@@ -13,6 +13,7 @@ namespace Ecommerce.Core.src.Entities.OrderAggregate
         public virtual IReadOnlyCollection<OrderItem>? OrderItems => _orderItems;
         public virtual User? User { get; set; }
         public virtual Address? ShippingAddress { get; set; }
+        public string? PaymentIntentId { get; set; }
 
         public Order() { }
         public Order(Guid userId, Guid addressId)

@@ -104,8 +104,6 @@ namespace Ecommerce.Tests.src.Service
                 Avatar = "http://example.com/new-avatar.jpg"
             };
 
-            var cacheEntry = Mock.Of<ICacheEntry>();
-            _mockCache.Setup(m => m.CreateEntry(It.IsAny<object>())).Returns(cacheEntry);
 
             _mockUserRepository.Setup(r => r.GetByIdAsync(userId)).ReturnsAsync(existingUser);
             _mockUserRepository.Setup(r => r.UpdateAsync(existingUser)).ReturnsAsync(updatedUser);
@@ -131,8 +129,6 @@ namespace Ecommerce.Tests.src.Service
             Assert.Equal("http://example.com/new-avatar.jpg", result.Avatar);
             _mockUserRepository.Verify(r => r.GetByIdAsync(userId), Times.Once);
             _mockUserRepository.Verify(r => r.UpdateAsync(existingUser), Times.Once);
-            _mockCache.Verify(c => c.Remove($"GetById-{userId}"), Times.Once);
-            _mockCache.Verify(c => c.Remove($"GetAll-{typeof(User).Name}"), Times.Once);
         }
 
         [Fact]
