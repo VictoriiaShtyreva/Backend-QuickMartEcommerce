@@ -10,7 +10,6 @@ COPY ["Ecommerce.WebAPI/Ecommerce.WebAPI.csproj", "Ecommerce.WebAPI/"]
 COPY ["Ecommerce.Controller/Ecommerce.Controller.csproj", "Ecommerce.Controller/"]
 COPY ["Ecommerce.Core/Ecommerce.Core.csproj", "Ecommerce.Core/"]
 COPY ["Ecommerce.Service/Ecommerce.Service.csproj", "Ecommerce.Service/"]
-COPY ["Ecommerce.Tests/Ecommerce.Tests.csproj", "Ecommerce.Tests/"]
 RUN dotnet restore
 
 # Copy the rest of the application and build it
