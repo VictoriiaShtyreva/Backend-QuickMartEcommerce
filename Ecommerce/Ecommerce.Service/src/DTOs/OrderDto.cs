@@ -10,7 +10,8 @@ namespace Ecommerce.Service.src.DTOs
         public decimal TotalPrice { get; set; }
         public List<OrderItemReadDto>? OrderItems { get; set; }
         public AddressReadDto? ShippingAddress { get; set; }
-        public string? PaymentIntentId { get; set; }
+        public string? CheckoutUrl { get; set; }
+        public string? StripeSessionId { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
     }

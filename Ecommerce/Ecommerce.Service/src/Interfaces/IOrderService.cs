@@ -11,7 +11,7 @@ namespace Ecommerce.Service.src.Interfaces
         Task<OrderReadDto> CreateOrderAsync(OrderCreateDto orderCreateDto);
         Task<bool> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus);
         Task<bool> UpdateOrderAsync(Guid orderId, OrderUpdateDto orderUpdateDto);
-        Task<bool> MarkOrderAsPaid(string paymentIntentId);
-        Task<bool> MarkOrderAsFailed(string paymentIntentId);
+        Task MarkOrderAsPaid(string sessionId);
+        Task MarkOrderAsFailed(string sessionId);
     }
 }

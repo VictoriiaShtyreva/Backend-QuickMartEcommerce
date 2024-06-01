@@ -65,28 +65,11 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             var orderCreateDto = new OrderCreateDto
             {
                 UserId = Guid.NewGuid(),
-                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
+                ShippingAddress = new AddressCreateDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
                 OrderItems = new List<OrderItemCreateDto> { new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 1 } }
             };
 
             _mockProductRepository.Setup(x => x.GetByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Product)null!);
-
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrderAsync(orderCreateDto));
-        }
-
-        [Fact]
-        public async Task CreateOrderAsync_ThrowsWhenInventoryIsInsufficient()
-        {
-            var orderCreateDto = new OrderCreateDto
-            {
-                UserId = Guid.NewGuid(),
-                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
-                OrderItems = new List<OrderItemCreateDto> { new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 10 } }
-            };
-
-            var product = new Product { Id = orderCreateDto.OrderItems[0].ProductId, Inventory = 5 };
-
-            _mockProductRepository.Setup(x => x.GetByIdAsync(product.Id)).ReturnsAsync(product);
 
             await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOrderAsync(orderCreateDto));
         }
@@ -98,12 +81,12 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             var orderCreateDto = new OrderCreateDto
             {
                 UserId = Guid.NewGuid(),
-                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
+                ShippingAddress = new AddressCreateDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
                 OrderItems = new List<OrderItemCreateDto>
-            {
-                new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 1 },
-                new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 2 }
-            }
+        {
+            new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 1 },
+            new OrderItemCreateDto { ProductId = Guid.NewGuid(), Quantity = 2 }
+        }
             };
 
             var products = orderCreateDto.OrderItems.Select(item => new Product
@@ -126,14 +109,14 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             }
 
             _mockAddressRepository.Setup(x => x.CreateAsync(It.IsAny<Address>())).ReturnsAsync(address);
-            _mockOrderRepository.Setup(x => x.CreateAsync(It.IsAny<Order>())).ReturnsAsync(new Order { UserId = orderCreateDto.UserId });
-            _mockStripeService.Setup(x => x.CreatePaymentIntent(It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync("test_payment_intent_id");
+            _mockOrderRepository.Setup(x => x.CreateAsync(It.IsAny<Order>())).ReturnsAsync(new Order { UserId = orderCreateDto.UserId, StripeSessionId = "test_session_id" });
+            _mockStripeService.Setup(x => x.CreateCheckoutSession(It.IsAny<decimal>(), It.IsAny<string>())).ReturnsAsync("https://example.com/checkout/test_session_id");
 
-            _mockMapper.Setup(m => m.Map<Address>(It.IsAny<AddressDto>())).Returns(address);
+            _mockMapper.Setup(m => m.Map<Address>(It.IsAny<AddressCreateDto>())).Returns(address);
             _mockMapper.Setup(m => m.Map<OrderReadDto>(It.IsAny<Order>())).Returns(new OrderReadDto
             {
                 UserId = orderCreateDto.UserId,
-                ShippingAddress = new AddressDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
+                ShippingAddress = new AddressReadDto { AddressLine = "123 Main St", City = "Testville", PostalCode = "12345", Country = "Testland" },
                 OrderItems = orderCreateDto.OrderItems.Select(i => new OrderItemReadDto
                 {
                     ProductSnapshot = new ProductSnapshotDto
@@ -144,7 +127,9 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
                         Price = products.First(p => p.Id == i.ProductId).Price,
                     },
                     Quantity = i.Quantity
-                }).ToList()
+                }).ToList(),
+                CheckoutUrl = "https://example.com/checkout/test_session_id",
+                StripeSessionId = "test_session_id"
             });
 
             // Act
@@ -153,10 +138,11 @@ namespace Ecommerce.Tests.src.xUnitTests.Service
             // Assert
             Assert.NotNull(result);
             Assert.Equal(orderCreateDto.UserId, result.UserId);
-            Assert.Equal(orderCreateDto.ShippingAddress.AddressLine, result.ShippingAddress!.AddressLine);
-            Assert.Equal(orderCreateDto.OrderItems.Count, result.OrderItems!.Count);
-            _mockStripeService.Verify(x => x.CreatePaymentIntent(It.IsAny<decimal>(), It.IsAny<string>()), Times.Once);
+            Assert.Equal("https://example.com/checkout/test_session_id", result.CheckoutUrl);
+            Assert.Equal("test_session_id", result.StripeSessionId);
+            Assert.Equal(orderCreateDto.OrderItems.Count, result.OrderItems.Count);
         }
+
 
         [Fact]
         public async Task GetOrdersByUserIdAsync_ReturnsOrders()

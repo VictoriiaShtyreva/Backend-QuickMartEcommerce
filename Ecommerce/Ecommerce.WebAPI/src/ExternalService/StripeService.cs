@@ -1,5 +1,6 @@
 using Ecommerce.Service.src.Interfaces;
 using Stripe;
+using Stripe.Checkout;
 
 namespace Ecommerce.WebAPI.src.ExternalService
 {
@@ -12,18 +13,34 @@ namespace Ecommerce.WebAPI.src.ExternalService
             StripeConfiguration.ApiKey = _secretKey;
         }
 
-        public async Task<string> CreatePaymentIntent(decimal amount, string currency = "usd")
+        public async Task<string> CreateCheckoutSession(decimal amount, string currency = "usd")
         {
-            var options = new PaymentIntentCreateOptions
+            var options = new SessionCreateOptions
             {
-                Amount = (long)(amount * 100),
-                Currency = currency,
-                PaymentMethodTypes = new List<string> { "card" }
+                LineItems = new List<SessionLineItemOptions>
+                {
+                    new SessionLineItemOptions
+                    {
+                        PriceData = new SessionLineItemPriceDataOptions
+                        {
+                            UnitAmount = (long)(amount * 100),
+                            Currency = currency,
+                            ProductData = new SessionLineItemPriceDataProductDataOptions
+                            {
+                                Name = "Order",
+                            },
+                        },
+                        Quantity = 1,
+                    },
+                },
+                Mode = "payment",
+                SuccessUrl = "https://quick-mart-ecommerce.azurewebsites.net/success",
+                CancelUrl = "https://quick-mart-ecommerce.azurewebsites.net/cancel",
             };
 
-            var service = new PaymentIntentService();
-            var paymentIntent = await service.CreateAsync(options);
-            return paymentIntent.ClientSecret;
+            var service = new SessionService();
+            var session = await service.CreateAsync(options);
+            return session.Url;
         }
     }
 }

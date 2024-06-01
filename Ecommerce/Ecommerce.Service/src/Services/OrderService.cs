@@ -55,14 +55,22 @@ namespace Ecommerce.Service.src.Services
                 }
                 product.Inventory -= item.Quantity;
                 await _productRepository.UpdateAsync(product);
-                // Fetch product images
                 var productSnapshot = await product.CreateSnapshotAsync(_productImageRepository);
                 order.AddOrderItem(productSnapshot, item.Quantity);
             }
-            // Create payment intent
+
+            // Create checkout session
             var currency = "usd";
-            var paymentIntentId = await _stripeService.CreatePaymentIntent(order.TotalPrice, currency);
-            order.PaymentIntentId = paymentIntentId;
+            var checkoutUrl = await _stripeService.CreateCheckoutSession(order.TotalPrice, currency);
+            order.CheckoutUrl = checkoutUrl;
+
+            // Store the session ID
+            var sessionId = checkoutUrl.Split("/").Last(); // Extracting session ID from URL
+            order.StripeSessionId = sessionId;
+
+            Console.WriteLine($"Checkout URL: {checkoutUrl}");
+            Console.WriteLine($"Session ID: {sessionId}");
+
             var createdOrder = await _orderRepository.CreateAsync(order);
             return _mapper.Map<OrderReadDto>(createdOrder);
         }
@@ -124,22 +132,25 @@ namespace Ecommerce.Service.src.Services
             return true;
         }
 
-        public async Task<bool> MarkOrderAsPaid(string paymentIntentId)
+        public async Task MarkOrderAsPaid(string sessionId)
         {
-            var order = await _orderRepository.GetByPaymentIntentIdAsync(paymentIntentId);
-            if (order == null) return false;
-            order.Status = OrderStatus.Pending;
-            await _orderRepository.UpdateAsync(order);
-            return true;
+            var order = await _orderRepository.GetByStripeSessionIdAsync(sessionId);
+            if (order != null)
+            {
+                order.Status = OrderStatus.Processing;
+                await _orderRepository.UpdateAsync(order);
+            }
         }
 
-        public async Task<bool> MarkOrderAsFailed(string paymentIntentId)
+        public async Task MarkOrderAsFailed(string sessionId)
         {
-            var order = await _orderRepository.GetByPaymentIntentIdAsync(paymentIntentId);
-            if (order == null) return false;
-            order.Status = OrderStatus.Cancelled;
-            await _orderRepository.UpdateAsync(order);
-            return true;
+            var order = await _orderRepository.GetByStripeSessionIdAsync(sessionId);
+            if (order != null)
+            {
+                order.Status = OrderStatus.Pending;
+                await _orderRepository.UpdateAsync(order);
+            }
         }
+
     }
 }

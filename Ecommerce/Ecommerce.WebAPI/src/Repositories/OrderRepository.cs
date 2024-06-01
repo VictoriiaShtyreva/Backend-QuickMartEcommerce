@@ -139,9 +139,10 @@ namespace Ecommerce.WebAPI.src.Repositories
             return await _orders.AnyAsync(e => e.Id == entity.Id);
         }
 
-        public async Task<Order?> GetByPaymentIntentIdAsync(string paymentIntentId)
+        public async Task<Order?> GetByStripeSessionIdAsync(string sessionId)
         {
-            return await _orders.FirstOrDefaultAsync(o => o.PaymentIntentId == paymentIntentId);
+            return await _orders.FirstOrDefaultAsync(o => o.StripeSessionId == sessionId);
         }
+
     }
 }

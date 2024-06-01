@@ -2,6 +2,7 @@ using Ecommerce.Service.src.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Stripe;
+using Stripe.Checkout;
 
 namespace Ecommerce.Controller.src.Controllers
 {
@@ -28,22 +29,15 @@ namespace Ecommerce.Controller.src.Controllers
                 _config["Stripe:WhSecret"]
             );
 
-            if (stripeEvent.Type == Events.PaymentIntentSucceeded)
+            if (stripeEvent.Type == Events.CheckoutSessionCompleted)
             {
-                if (stripeEvent.Data.Object is PaymentIntent paymentIntent)
+                if (stripeEvent.Data.Object is Session session)
                 {
-                    await _orderService.MarkOrderAsPaid(paymentIntent.Id);
-                }
-            }
-            else if (stripeEvent.Type == Events.PaymentIntentPaymentFailed)
-            {
-                if (stripeEvent.Data.Object is PaymentIntent paymentIntent)
-                {
-                    await _orderService.MarkOrderAsFailed(paymentIntent.Id);
+                    await _orderService.MarkOrderAsPaid(session.Id);
                 }
             }
 
-            return Ok(stripeEvent);
+            return Ok();
         }
     }
 }

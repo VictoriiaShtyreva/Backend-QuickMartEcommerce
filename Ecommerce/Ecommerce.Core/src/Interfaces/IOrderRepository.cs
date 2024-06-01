@@ -8,7 +8,6 @@ namespace Ecommerce.Core.src.Interfaces
     {
         Task<bool> UpdateOrderStatusAsync(Guid orderId, OrderStatus newStatus);
         Task<IEnumerable<Order>> GetOrderByUserIdAsync(Guid userId);
-        Task<Order?> GetByPaymentIntentIdAsync(string paymentIntentId);
-
+        Task<Order?> GetByStripeSessionIdAsync(string sessionId);
     }
 }

@@ -9,6 +9,7 @@ namespace Ecommerce.Core.src.ValueObjects
         Completed,
         Shipped,
         Cancelled,
-        Processing
+        Processing,
+
     }
 }

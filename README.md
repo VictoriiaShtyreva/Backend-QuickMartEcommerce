@@ -219,7 +219,7 @@ To execute the unit tests, you can use the .NET CLI. Follow these steps to run t
 1. **Navigate to the project directory**: Open your terminal or command prompt and navigate to the root directory of project.
 
    ```bash
-   cd Ecommerce
+   cd Ecommerce/Ecommerce.Test
    ```
 
 2. **Run the tests**: Execute the following command to run all the tests in the solution:

@@ -2,6 +2,6 @@ namespace Ecommerce.Service.src.Interfaces
 {
     public interface IStripeService
     {
-        Task<string> CreatePaymentIntent(decimal amount, string currency);
+        Task<string> CreateCheckoutSession(decimal amount, string currency = "usd");
     }
 }
