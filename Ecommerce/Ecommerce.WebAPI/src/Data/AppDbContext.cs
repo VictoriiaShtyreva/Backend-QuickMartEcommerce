@@ -141,44 +141,44 @@ namespace Ecommerce.WebAPI.src.Data
             modelBuilder.HasPostgresEnum<UserRole>();
             modelBuilder.HasPostgresEnum<OrderStatus>();
             // Fetch seed data
-            SeedData(modelBuilder);
+            // SeedData(modelBuilder);
             base.OnModelCreating(modelBuilder);
         }
 
-        private void SeedData(ModelBuilder modelBuilder)
-        {
-            var categories = SeedingData.GetCategories();
-            modelBuilder.Entity<Category>().HasData(categories);
+        // private void SeedData(ModelBuilder modelBuilder)
+        // {
+        //     var categories = SeedingData.GetCategories();
+        //     modelBuilder.Entity<Category>().HasData(categories);
 
-            var products = SeedingData.GetProducts();
-            modelBuilder.Entity<Product>().HasData(products);
+        //     var products = SeedingData.GetProducts();
+        //     modelBuilder.Entity<Product>().HasData(products);
 
-            var productImages = new List<ProductImage>();
-            foreach (var product in products)
-            {
-                var imagesForProduct = SeedingData.GenerateProductImagesForProduct(product.Id);
-                productImages.AddRange(imagesForProduct);
-            }
-            modelBuilder.Entity<ProductImage>().HasData(productImages);
+        //     var productImages = new List<ProductImage>();
+        //     foreach (var product in products)
+        //     {
+        //         var imagesForProduct = SeedingData.GenerateProductImagesForProduct(product.Id);
+        //         productImages.AddRange(imagesForProduct);
+        //     }
+        //     modelBuilder.Entity<ProductImage>().HasData(productImages);
 
-            var users = SeedingData.GetUsers();
-            foreach (var user in users)
-            {
-                user.Password = _passwordService.HashPassword(user, user.Password!);
-            }
-            modelBuilder.Entity<User>().HasData(users);
+        //     var users = SeedingData.GetUsers();
+        //     foreach (var user in users)
+        //     {
+        //         user.Password = _passwordService.HashPassword(user, user.Password!);
+        //     }
+        //     modelBuilder.Entity<User>().HasData(users);
 
-            var addresses = SeedingData.GetAddresses();
-            modelBuilder.Entity<Address>().HasData(addresses);
+        //     var addresses = SeedingData.GetAddresses();
+        //     modelBuilder.Entity<Address>().HasData(addresses);
 
-            var orders = SeedingData.GetOrders(users, addresses);
-            modelBuilder.Entity<Order>().HasData(orders);
+        //     var orders = SeedingData.GetOrders(users, addresses);
+        //     modelBuilder.Entity<Order>().HasData(orders);
 
-            var orderItems = SeedingData.GetOrderItems(orders, products, productImages);
-            modelBuilder.Entity<OrderItem>().HasData(orderItems);
+        //     var orderItems = SeedingData.GetOrderItems(orders, products, productImages);
+        //     modelBuilder.Entity<OrderItem>().HasData(orderItems);
 
-            var reviews = SeedingData.GetReviews(users, products);
-            modelBuilder.Entity<Review>().HasData(reviews);
-        }
+        //     var reviews = SeedingData.GetReviews(users, products);
+        //     modelBuilder.Entity<Review>().HasData(reviews);
+        // }
     }
 }

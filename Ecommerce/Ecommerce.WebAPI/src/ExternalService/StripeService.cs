@@ -34,8 +34,8 @@ namespace Ecommerce.WebAPI.src.ExternalService
                     },
                 },
                 Mode = "payment",
-                SuccessUrl = "https://quick-mart-ecommerce.azurewebsites.net/success",
-                CancelUrl = "https://quick-mart-ecommerce.azurewebsites.net/cancel",
+                SuccessUrl = "https://quick-mart-ecommerce.vercel.app/success",
+                CancelUrl = "https://quick-mart-ecommerce.vercel.app/cancel",
             };
 
             var service = new SessionService();
