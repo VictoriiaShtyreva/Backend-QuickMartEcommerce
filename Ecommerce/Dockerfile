@@ -17,6 +17,12 @@ COPY . .
 WORKDIR /Ecommerce/Ecommerce.WebAPI
 RUN dotnet publish -c Release -o /publish
 
+# Copy the init-db.sh script into the container
+COPY ./init-db.sh /init-db.sh
+
+# Give execution permission to the init-db.sh script
+RUN chmod +x /init-db.sh
+
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /Ecommerce/Ecommerce.WebAPI

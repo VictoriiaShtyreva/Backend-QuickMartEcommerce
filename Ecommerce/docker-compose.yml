@@ -1,0 +1,28 @@
+services:
+  frontend:
+    image: viktoriiashtyrevakot/ecommerce-app-frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    image: viktoriiashtyrevakot/ecommerce-app
+    ports:
+      - "8080:8080"
+    environment:
+      - ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=ecommerce_platform;Username=test_admin;Password=admin@password
+    depends_on:
+      - postgres
+    command: ["bash", "-c", "./init-db.sh && dotnet Ecommerce.WebAPI.dll"]
+
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_DB=ecommerce_platform
+      - POSTGRES_USER=test_admin
+      - POSTGRES_PASSWORD=admin@password
+    ports:
+      - "5432:5432"
