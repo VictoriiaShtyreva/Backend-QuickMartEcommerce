@@ -135,8 +135,12 @@ You can also run the entire application using Docker and Docker Compose. This is
 1. **Start the Docker Compose Services**: Navigate to the directory containing your docker-compose.yml file and run the following command to start all the services:
 
    ```bash
-     REACT_APP_API_URL=http://localhost:3000
+     docker-compose up
    ```
+
+   > Access the Application:
+   > \*\*Frontend: Open your web browser and go to `http://localhost:3000`.
+   > Backend: The backend will be running at `http://localhost:8080`.
 
 ## Database Schema and ERD
 
